@@ -384,9 +384,9 @@ class XML_Unserializer extends XML_Parser {
 
                 // instantiate the class
                 if (class_exists($classname)) {
-                    $value["value"] = &new $classname;
+                    $value["value"] = new $classname;
                 } else {
-                    $value["value"] = &new stdClass;
+                    $value["value"] = new stdClass;
                 }
                 if ($data !== '') {
                     $value["children"][$this->options["contentName"]] = $data;
@@ -493,4 +493,4 @@ class XML_Unserializer extends XML_Parser {
         $this->_dataStack[$this->_depth] .= $cdata;
     }
 }
-?>
+

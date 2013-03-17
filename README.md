@@ -23,7 +23,7 @@ Muuda saidi juurkataloogis `.htaccess` faili, lisades reeglid URL'ide ümberkirj
     RewriteRule ^auth/(.*)$ ID-AJAX/auth.php?action=$1&%{QUERY_STRING} [NC]
 
 ID kaardi tugi peab olema serveris olemas. See on automaatselt olemas näiteks Zone III paketis ja Veebimajutus.ee Standard+ paketis - nende pakettide puhul midagi täiendavalt ise ID kaardi töölepanekuks tegema ei pea.
-    
+
 Ava aadress `https://sinuserver.com/ID-AJAX/test/` ning proovi järgi, kas asi töötab.
 
 Märkused
@@ -34,7 +34,7 @@ Märkused
   * Teenuse sertide asukoht on *ID-AJAX/lib/service_certs.pem*
   * DigiDoc teek puhverdab WSDL klassi faili *ID-AJAX/wsdl.class.php* - juhul kui *conf.php* faili muudetakse, tuleb see WSDL ära kustutada
   * Allkirjastatavate failidega majandab klass `FileStore` (*ID-AJAX/filestore.php*), mis vaikimisi salvestab kõigi failide andmed kausta */ID-AJAX/tmpfiles*. Juhul kui tekib soov need failid kuhugi mujale paigutada (MySQL vms), siis võib FileStore klassi üle kirjutada, oluline on vaid jätta selle klassi API samaks, sisu võib aga suvaline olla.
-  
+
 Live demo
 ---------
 
@@ -52,7 +52,7 @@ Kõige parem on vaadata, kuidas töötab *ID-AJAX/test/index.html*. Kasutatud Ja
 
 Näiterakendus teeb loob iga allkirjastamise jaoks uue faili, aga kui viide faili juurde (fid väärtus) on olemas, saab sama faili ka korduvalt allkirjastada. Mõistlik oleks võibolla *auth/addFile* meetod üldse välja lülitada ja tekitada allkirjastatavad failid mingil muul moel, kui et kasutaja need ise üles laeb.
 
-Allkirjastamise jaoks peab lehel olema DOM element, mille *id* väärtuseks on *pluginLocation*. Skriptis *auth_sign.js* lisab selle lehele automaatselt funktsioon *init_card_plugin()* seega ei pea element olema HTML'i vägisi sisse kirjutatud. 
+Allkirjastamise jaoks peab lehel olema DOM element, mille *id* väärtuseks on *pluginLocation*. Skriptis *auth_sign.js* lisab selle lehele automaatselt funktsioon *init_card_plugin()* seega ei pea element olema HTML'i vägisi sisse kirjutatud.
 
 # Töökorraldus
 
@@ -66,14 +66,14 @@ Kõikide AJAX päringute puhul on vea korral (v.a. ID kaardiga autentimine, kui 
   * *code*: "vea_kood"
 
 JSON:
-    
+
     {
         "status": "ERROR",
         "message": "Authentication failed!",
         "code": "SESSION_TIMEOUT"
     }
-    
-    
+
+
 ## Autentimine
 
 ### ID kaart
@@ -108,7 +108,7 @@ JSON:
             "UserCountry": "EE"
         }
     }
-    
+
 
 ### Mobiil-ID
 
@@ -116,7 +116,7 @@ Mobiil-ID autentimine koosneb kahest eri etapist:
 
   1. Autentimise algatamine, tehes päringu aadressile `/auth/mobileAuthRequest'
   2. Perioodiline autentimise kulgemise kontroll aadressil `/auth/mobileAuthStatus`
-  
+
 Autentimise algatmisel on kohustuslikuks parameetriks `phone` telefoninumbriga, täiendavalt saab edastada veel parameetri `message` mis tähistab kuni 40 tähemärgi pikkust kasutaja mobiiliekraanile kuvatavat teadet.
 Autentimise algatamise tagastuseks on JSON struktuur selle õnnestumise kohta. Probleemseteks punktideks on olukorrad kus telefoni number ei ole Mobiil-ID'ga seotud, on levist väljas või on mõni muu tehniline rike. Eduka päringu sooritamise korral on vastus järgmine:
 
@@ -131,9 +131,9 @@ JSON:
         "sid": 128463527,
         "code": "5612"
     }
-    
 
-Kui autentimine on algatatud, tuleb järgmisena alustada perioodilist kontrolli selle kulgemise kohta. Kontrollimisel on kohustuslikuks (ja ainsaks) parameetriks `sid` autentimise sessiooni võtmega. 
+
+Kui autentimine on algatatud, tuleb järgmisena alustada perioodilist kontrolli selle kulgemise kohta. Kontrollimisel on kohustuslikuks (ja ainsaks) parameetriks `sid` autentimise sessiooni võtmega.
 
   * Kui autentimine lõpeb veaga (kasutaja vajutas "cancel", aeg sai otsa vms), on tagastusväärtuseks tavaline veateavitus.
   * Kui autentimine veel kestab (kasutaja pole koodi sisestanud ega katkestanud), on JSON struktuur järgmine
@@ -144,13 +144,13 @@ Kui vastuses on *status* väärtuseks "WAITING" tuleb kontrolli mõne aja päras
 
 ## Allkirjastamine
 
-Allkirjastamiseks on vaja kõigepealt mõnda faili, mida allkirjastada. Failidega majandamiseks on klass `FileStore` 
+Allkirjastamiseks on vaja kõigepealt mõnda faili, mida allkirjastada. Failidega majandamiseks on klass `FileStore`
 mis asub failis *filestore.php*.
 
-Mobiil-ID ja ID kaardiga allkirjastamise suurem vahe on faktis, et kui ID kaardi puhul allkirijastatakse faili, 
-siis Mobiil-ID puhul allkirjastatakse XML elemendi räsi. ID kaardiga tuleb saata fail Sertifitseerimiskeskuse 
-serverile, lisada ID kaardilt saadud allkirja räsi ja vastu saadakse DDOC fail, mis sisaldab nii algset dokumenti 
-kui ka allkirja kinnitust. Mobiil ID puhul tuleb Sertifitseerimiskeskuse serverile saata räsi üle faili XML kirje 
+Mobiil-ID ja ID kaardiga allkirjastamise suurem vahe on faktis, et kui ID kaardi puhul allkirijastatakse faili,
+siis Mobiil-ID puhul allkirjastatakse XML elemendi räsi. ID kaardiga tuleb saata fail Sertifitseerimiskeskuse
+serverile, lisada ID kaardilt saadud allkirja räsi ja vastu saadakse DDOC fail, mis sisaldab nii algset dokumenti
+kui ka allkirja kinnitust. Mobiil ID puhul tuleb Sertifitseerimiskeskuse serverile saata räsi üle faili XML kirje
 loodavas DDOC failis ning vastu saadakse XML kujul allkirja kinnitus mis tuleb ise DDOC faili juurde lisada.
 
 Näitena saab tekitada allkirjastamiseks uue faili käsuga `/auth/addFile`, mille parameetritena tuleb edastada järgmised andmed
@@ -169,9 +169,9 @@ JSON:
         "status": "OK",
         "fid": "1299265325ccb62cd5613213d46fdb8c39f288b0d0"
     }
-    
 
-Kui faili identifikaator on olemas, saab seda faili allkirjastada. Sama identifikaatorit kasutades saab lisada ühele failile 
+
+Kui faili identifikaator on olemas, saab seda faili allkirjastada. Sama identifikaatorit kasutades saab lisada ühele failile
 mitu erinevat allkirja ja seda nii ID kaardi kui ka mobiiliga.
 
 Mõistlik oleks failide lisamine organiseerida siiski kuidagi teisit, mitte lasta neid kasutajatel vabalt üles laadida.
@@ -183,9 +183,9 @@ ID kaardiga allkirjastamiseks peab lehel olema laetud JavaScripti fail */ID-AJAX
 tuleb lisada allkirjastamiseks vajalik plugin. Demolehel teeb seda funktsioon `init_card_plugin()`.
 
 Kui plugin on lehel olemas, tuleb esiteks laadida ID kaardilt sertifikaadi andmed, saata need serverile (`/auth/cardPrepareSignature`)
-ja seejärel saadud andmetega viia allkirjastamine läbi. Kui allkirja andmed on olemas, saab need 
+ja seejärel saadud andmetega viia allkirjastamine läbi. Kui allkirja andmed on olemas, saab need
 saata serverile (`/auth/cardFinalizeSignature`) kinnitamiseks. Protsessi saab mugavalt läbi viia JavaScript funktsiooniga
-`AUTH.preparesignatureRequest(fid, callback)` kus `fid` on allkirjastatava faili identifikaator ja `callback` on 
+`AUTH.preparesignatureRequest(fid, callback)` kus `fid` on allkirjastatava faili identifikaator ja `callback` on
 tagasikutsefunktsioon, mis saab parameetriks väärtused `error` ja `data`. Esimene parameeter on seatud, kui protsessis ilmnes viga
 ja teine kui kõik õnnestus.
 

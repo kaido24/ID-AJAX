@@ -10,12 +10,12 @@ var IDCardModule = {};
     *  Javascripti klienditeegi versioon 0.8
     *  Käesoleva javascripti klienditeegi dokumentatsiooni levitatakse eraldi dokumendina "Veebis signeerimise Javascripti klienditeek".
     *  Dokumentatsiooni saamiseks ja muude küsimuste korral pöörduda abi@id.ee
-    *  
+    *
     *  Muudatuste ajalugu:
     *
     *  versioon 0.9  6. jaanuar 2011
     *	- Parandatud plugina tuvastust, varasem versioon põstas  10.6 Safariga ccrashi
-    
+
     *  versioon 0.8, 29. detsember 2010
     *	 - Javascripti teegi API-s muutunud: Meetod getCertificates asendatud getCertificate'ga
     *	 - application/x-digidoc plugina puhul võetud kasutusele meetod getCertificate kuna getCertificates'i uutes plugina versioonides enam ei ole
@@ -24,11 +24,11 @@ var IDCardModule = {};
     *  versioon 0.7, 15. detsember 2010
     *	 - Lisatud veakoodi 100 kirjeldus
     *
-    *  versioon 0.6, 18. oktoober 2010 
+    *  versioon 0.6, 18. oktoober 2010
     *	 - Kõige esimese põlvkonna signeerimise ActiveX-i jaoks vajaliku ASN.1 struktuuri parsimisse lisatud BMPstring välja tüübi tugi
     *	 - Täiustatud plugina laadimise loogikat Macil, parandatud viga mille tõttu ei laetud vanu Maci pluginaid
     *
-    *  versioon 0.5, 8. oktoober 2010 
+    *  versioon 0.5, 8. oktoober 2010
     *	- Lisatud 2010 aastal levitatava ID-kaardi baastarkvara tugi
     *	- knownCAList toodud globaalseks konfiguratsiooniparameetriks
     *	- puhastatud kood mittevajalikest "debug" fragmentidest
@@ -221,7 +221,7 @@ var IDCardModule = {};
 
             // Kui siia jõuame, siis uue tarkvara pluginat ei ole laetud ja otsustame brauseri põhiselt milline vanadest pluginatest laadida
 
-            if (navigator.userAgent.indexOf('Win') != -1) // 
+            if (navigator.userAgent.indexOf('Win') != -1) //
             {
                 if (navigator.appVersion.indexOf("MSIE") != -1) {
                     // Tuvastasime, et tegu on Windowsi OS-i ja IE-ga, laeme ActiveX-i.
@@ -323,10 +323,10 @@ var IDCardModule = {};
 
             /*
     		if (response.returnCode != 0) {
-    
+
                 throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
             }
-    
+
             if (response.certificates.length == 0) {
                 throw new IdCardException(2, dictionary[2][lang]);
             }
@@ -546,7 +546,7 @@ var IDCardModule = {};
 
                         yearStr = parseInt(trim(year, "0 ")) + 2000;
                         yearStr = yearStr + '';
-                        //dateStr = 'new Date(' + yearStr + ',' + parseInt(month) + ',' + parseInt(day) + ',' + parseInt(hour) + ',' + parseInt(minute) + ',' + parseInt(second) + ')';	
+                        //dateStr = 'new Date(' + yearStr + ',' + parseInt(month) + ',' + parseInt(day) + ',' + parseInt(hour) + ',' + parseInt(minute) + ',' + parseInt(second) + ')';
                         dateStr = 'new Date(' + yearStr + ',' + month + ',' + day + ',' + hour + ',' + minute + ',' + second + ')';
 
                         if (countUTCTime == 0) {

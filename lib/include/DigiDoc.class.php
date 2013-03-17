@@ -223,7 +223,7 @@ class Base_DigiDoc {
         //$this->NS = $this->Client->_wsdl->definition['targetNamespace'];
         $this->NS = isset($this->Client->_wsdl->definition['targetNamespace']) ? $this->Client->_wsdl->definition['targetNamespace'] : "";
     }
-    
+
     /**
      * Lisab vastava parameetri ja väärtuse SOAP headerisse
      *
@@ -285,7 +285,7 @@ class Base_DigiDoc {
     function cleanDateString($date) {
         return preg_replace("'[TZ]'", " ", $date);
     }
-    
+
     /**
      * Sertifikaadi salvestamine
      */
@@ -293,8 +293,8 @@ class Base_DigiDoc {
         $filename = uniqid('certificate') . '.cer';
         $content = "-----BEGIN CERTIFICATE-----\n" . $file . "\n-----END CERTIFICATE-----\n";
         File::SaveAs($filename, $content, 'application/certificate', 'utf-8');
-    } 
-    
+    }
+
     /**
      * Kehtivuskinnituse salvestamine
      */
@@ -303,7 +303,7 @@ class Base_DigiDoc {
         $content = base64_decode($file);
         File::SaveAs($filename, $content, 'application/notary-ocsp', 'utf-8');
     }
-    
+
     /**
      * Tagastab ddociga kaasas olnud andmefailid array-na
      */
@@ -311,15 +311,15 @@ class Base_DigiDoc {
         $res = array();
         return $res;
     }
-    
+
     /**
      * Tagastab ddociga kaasas olnud allkirjad array-na
      */
     function getSignatures($result) {
         $res = array();
         return $res;
-    } 
-    
+    }
+
     /**
      * Tagastame brauseri ja OS/i info stringina
      */
@@ -328,8 +328,8 @@ class Base_DigiDoc {
         $os = $browser['OS'] == 'Win' ? 'WIN32' : 'LINUX';
         $br = $browser['BROWSER_AGENT'] == 'IE' ? 'IE' : 'MOZILLA';
         return $os . '-' . $br;
-    } 
-    
+    }
+
     /**
      * ühenduse/proksi parameetrite vektor
      *
@@ -346,7 +346,7 @@ class Base_DigiDoc {
         if (defined('DD_TIMEOUT') && DD_TIMEOUT) $ret['timeout'] = DD_TIMEOUT;
         return $ret;
     }
-    
+
 }
 ###########################################################################
 ###########################################################################
@@ -420,7 +420,7 @@ class Parser_DigiDoc {
         $this->workPath = DD_FILES . "/"; //.session_id().'/';
         if (!is_dir($this->workPath)) if (File::DirMake($this->workPath) != DIR_ERR_OK) die('Error accessing workpath:' . $this->workPath);
     }
-    
+
     /**
      * Teisendab XML-i array kujule
      *
@@ -593,7 +593,7 @@ class Parser_DigiDoc {
                 return $this->getDataFileBlockHashCoded($xml);
             }
         }
-        
+
     }
 
     /**
@@ -831,7 +831,7 @@ class File {
     function File() {
         return true;
     }
-    
+
     /**
      * Kaustade/alamkaustade loomiseks
      *
@@ -980,7 +980,7 @@ class File {
             $res['BROWSER_AGENT'] = 'OTHER';
         }
         return $res;
-    } 
+    }
 
     /**
      * ajutise faili nimi
@@ -993,7 +993,7 @@ class File {
     function tempFile() {
         return date('Ymd_His') . '$' . substr('000' . rand(0, 999), -3) . '.' . $ext;
     } // end func
-    
+
     /**
      * loeb kohalikult ketalt faili sisu
      *
@@ -1012,7 +1012,7 @@ class File {
             return FALSE;
         }
     }
-    
+
     /**
      * Salvestab lokaalseks failiks
      *
@@ -1035,7 +1035,7 @@ class File {
             return FALSE;
         }
     }
-    
+
     /**
      * Tagastab etteantud nimega väljalt üleslaetud faili
      *
@@ -1069,7 +1069,7 @@ class File {
             return FALSE;
         }
     }
-    
+
     /**
      * Short description.
      *
@@ -1092,7 +1092,7 @@ class File {
         $name = str_replace('ļæ½','#uuml;', $name);
         $name = str_replace('ļæ½','#zacut;', $name);
         $name = str_replace('ļæ½','#sacut;', $name);
-        
+
         $name = str_replace('ļæ½','#Otilde;', $name);
         $name = str_replace('ļæ½','#Auml;', $name);
         $name = str_replace('ļæ½','#Ouml;', $name);
@@ -1105,7 +1105,7 @@ class File {
         $name = str_replace('ļæ½','#auml;', $name);
         $name = str_replace('ļæ½','#ouml;', $name);
         $name = str_replace('ļæ½','#uuml;', $name);
-        
+
         $name = str_replace('ļæ½','#Otilde;', $name);
         $name = str_replace('ļæ½','#Auml;', $name);
         $name = str_replace('ļæ½','#Ouml;', $name);
@@ -1114,7 +1114,7 @@ class File {
         */
         return $nameX;
     } // end func
-    
+
     /**
      * Abifunktsioon debug-info väljastamiseks
      * @param      mixed    $var     Muutuja mille väärtus väljastatakse
@@ -1131,6 +1131,6 @@ class File {
 =================================================================
 </pre>
 ';
-    } 
+    }
 }
 

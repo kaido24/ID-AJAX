@@ -310,4 +310,3 @@ class WebService_DigiDocService_DigiDocService extends SOAP_Client
     }
 }
 
-?>

@@ -177,51 +177,38 @@ class Base_DigiDoc {
     var $Client;
 
     /**
-     * WSDL faili põhjal genereeritud liides
-     */
-    var $WSDL;
-
-    /**
      * Brauseri ja OS-i andmed
      */
     var $browser;
-
-    /*
-     * funktsioon class WebService_DigiDocService_DigiDocService definitsiooni
-     * laadimiseks _enne_ sessiooni alustamist et oleks võimalik Base_DigiDoc
-     * sessiooni salvestada
-     */
-    function load_WSDL() {
-        //2010.07, ahto, parandusettepanek by Anttix
-        $connection['curl'] = array(
-            CURLOPT_SSL_VERIFYPEER => 1,
-            //1 (see http://curl.haxx.se/libcurl/c/curl_easy_setopt.html)
-            CURLOPT_SSL_VERIFYHOST => 2,
-            //2
-            CURLOPT_CAINFO => DD_SERVER_CA_FILE
-        );
-        if (is_readable(DD_WSDL_FILE) && filesize(DD_WSDL_FILE) > 32) {
-            include_once DD_WSDL_FILE;
-        }
-        else {
-            $wsdl = new SOAP_WSDL(DD_WSDL, $connection);
-            $wcode = $wsdl->generateProxyCode();
-            eval($wcode);
-            File::saveLocalFile(DD_WSDL_FILE, "<?php\n" . $wcode . "\n?" . ">");
-        }
-    }
 
     /**
      * Constructor
      */
     function Base_DigiDoc() {
         $connection = $this->getConnect();
-        $this->Client = new SOAP_Client(DD_WSDL, TRUE, FALSE, $connection);
-        $this->WSDL = new WebService_DigiDocService_DigiDocService();
+        // 2010.07, ahto, parandusettepanek by Anttix
+        $connection['curl'] = array(
+            // see http://curl.haxx.se/libcurl/c/curl_easy_setopt.html
+            CURLOPT_SSL_VERIFYPEER => TRUE,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_CAINFO => DD_SERVER_CA_FILE,
+        );
+        $this->Client = new SOAP_Client(DD_PATH, TRUE, FALSE, $connection);
         $this->browser = File::getBrowser();
         //2010.07, ahto, parandus
         //$this->NS = $this->Client->_wsdl->definition['targetNamespace'];
         $this->NS = isset($this->Client->_wsdl->definition['targetNamespace']) ? $this->Client->_wsdl->definition['targetNamespace'] : "";
+    }
+
+    function query($command, $values) {
+        return $this->Client->call($command, $v = $values,
+            array(
+                'namespace' => DD_NAMESPACE,
+                'soapaction' => '',
+                'style' => 'rpc',
+                'use' => 'encoded',
+            )
+        );
     }
 
     /**
@@ -251,7 +238,7 @@ class Base_DigiDoc {
                 $hr->namespace = $this->NS;
                 if (isset($hr->attributes['SOAP-ENV:actor'])) unset($hr->attributes['SOAP-ENV:actor']);
                 if (isset($hr->attributes['SOAP-ENV:mustUnderstand'])) unset($hr->attributes['SOAP-ENV:mustUnderstand']);
-                $this->WSDL->addHeader($hr);
+                $this->Client->addHeader($hr);
             }
             return TRUE;
         }
@@ -260,7 +247,7 @@ class Base_DigiDoc {
             $hr->namespace = $this->NS;
             if (isset($hr->attributes['SOAP-ENV:actor'])) unset($hr->attributes['SOAP-ENV:actor']);
             if (isset($hr->attributes['SOAP-ENV:mustUnderstand'])) unset($hr->attributes['SOAP-ENV:mustUnderstand']);
-            $this->WSDL->addHeader($hr);
+            $this->Client->addHeader($hr);
         }
         else {
             return FALSE;
@@ -273,7 +260,7 @@ class Base_DigiDoc {
      */
     function getDigiDocArray() {
         $us = new XML_Unserializer();
-        $us->unserialize($this->WSDL->xml, FALSE);
+        $us->unserialize($this->Client->xml, FALSE);
         $xml = $us->getUnserializedData();
         return $xml;
     }

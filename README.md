@@ -200,3 +200,7 @@ Allkirjastatud failid saab alla laadia aadressilt `/auth/getDDOC?fid={fid}` kus 
 
 Kõikide siin kirjeldatud toimingute läbiviimist saab uurida testrakendusest.
 
+
+Spetsifikatsioon
+================
+http://www.sk.ee/files/DigiDocService_spec_eng.pdf

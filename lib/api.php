@@ -1,9 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/../conf.php';
-require_once dirname(__FILE__) . '/../lib/include/DigiDoc.class.php';
-
-Base_DigiDoc::load_WSDL();
+require_once dirname(__FILE__) . '/../lib/DigiDoc.class.php';
 
 /***** AUTH ******/
 
@@ -110,7 +108,19 @@ class Auth {
         }
 
         $dd = new Base_DigiDoc();
-        $result = $dd->WSDL->MobileAuthenticate("", "", $phone, $lang, DD_SERVICE_NAME, $message_to_display, bin2hex(substr("MYA" . microtime(false), 0, 10)), "asynchClientServer", NULL, true, FALSE);
+        $result = $dd->query('MobileAuthenticate', array(
+            'IDCode' => '',
+            'Country' => '',
+            'PhoneNo' => $phone,
+            'Language' => $lang,
+            'ServiceName' => DD_SERVICE_NAME,
+            'MessageToDisplay' => $message_to_display,
+            'SPChallenge' => bin2hex(substr("MYA" . microtime(FALSE), 0, 10)),
+            'MessagingMode' =>"asynchClientServer",
+            'AsyncConfiguration' => NULL,
+            'ReturnCertData' => TRUE,
+            'ReturnRevocationData' => FALSE,
+        ));
         if ((isset($result) && is_object($result) && is_a($result, 'SOAP_Fault')) || !isset($result["Status"])) {
             // ERROR
             switch ($result->backtrace[0]["args"][0]) {
@@ -196,8 +206,7 @@ class Auth {
         }
 
         $dd = new Base_DigiDoc();
-
-        $result = $dd->WSDL->GetMobileAuthenticateStatus(self::$sid, false);
+        $result = $dd->query('GetMobileAuthenticateStatus', array(self::$sid, FALSE));
 
         if (is_object($result)) {
             self::$error = $result->userinfo->message;
@@ -411,7 +420,13 @@ class Sign {
 
         if (count($file["signatures"])) {
             $existing_ddoc = FileStore::generateDDOC($fid);
-            $ret = $dd->WSDL->startSession('', $existing_ddoc["signedContents"], TRUE, '');
+
+            $ret = $dd->query('startSession', array(
+                'SigningProfile' => '',
+                'SigDocXML' => $existing_ddoc["signedContents"],
+                'bHoldSession' => TRUE,
+                'Datafile' => '',
+            ));
         }
         else {
             $f['Filename'] = $file["fileName"];
@@ -420,25 +435,33 @@ class Sign {
             $f['Size'] = strlen($file["contents"]);
             $f['DfData'] = chunk_split(base64_encode($file["contents"]), 64, "\n");
 
-            $ret = $dd->WSDL->startSession('', '', TRUE, $f);
+            $datafile = new SOAP_Value('datafile', DD_WSDL_DATAFILE, $f);
+
+            $ret = $dd->query('startSession', array(
+                'SigningProfile' => '',
+                'SigDocXML' => '',
+                'bHoldSession' => TRUE,
+                'Datafile' => $f,
+            ));
         }
 
         //print_r($ret);
         //print_r(FileStore::generateDDOC($fid));
 
         if (!PEAR::isError($ret) || $ret["Status"] != "OK") {
-            $result = $ddoc->Parse($dd->WSDL->xml, 'body');
+            $result = $ddoc->Parse($dd->Client->xml, 'body');
             self::$sid = intval($result["Sesscode"]);
 
-            $signatureData = $dd->WSDL->PrepareSignature(
-                intval(self::$sid),
-                $certHex,
-                $certId,
-                stripslashes($_REQUEST['Role']),
-                stripslashes($_REQUEST['City']),
-                stripslashes($_REQUEST['State']),
-                stripslashes($_REQUEST['PostalCode']),
-                stripslashes($_REQUEST['Country']),"");
+            $signatureData = $dd->query('PrepareSignature', array(
+                'Sesscode' => intval(self::$sid),
+                'SignersCertificate' => $certHex,
+                'SignersTokenId' => $certId,
+                'Role' => stripslashes($_REQUEST['Role']),
+                'City' => stripslashes($_REQUEST['City']),
+                'State' => stripslashes($_REQUEST['State']),
+                'PostalCode' => stripslashes($_REQUEST['PostalCode']),
+                'CountryName' => stripslashes($_REQUEST['Country'])
+            ));
 
             self::$data = array(
                 "SID"           => self::$sid,
@@ -478,10 +501,11 @@ class Sign {
             return FALSE;
         }
 
-        $ret = $dd->WSDL->FinalizeSignature(
-            intval(self::$data['SID']),
-            $signatureId,
-            $signatureHex);
+        $ret = $dd->query('FinalizeSignature', array(
+            'Sesscode' => intval(self::$data['SID']),
+            'SignatureId' => $signatureId,
+            'SignatureValue' => $signatureHex,
+        ));
 
         if (!PEAR::isError($ret) || $ret["Status"] != "OK") {
             $signatureData = array();
@@ -489,8 +513,11 @@ class Sign {
             $signatureData["UserSurname"] = self::$data["UserSurname"];
             $signatureData["UserGivenname"] = self::$data["UserGivenname"];
             $signatureData["UserIDCode"] = self::$data["UserIDCode"];
-            $signature = false;
-            $ret = $dd->WSDL->GetSignedDoc(intval(self::$data['SID']));
+            $signature = FALSE;
+            $ret = $dd->query('GetSignedDoc', array(
+                'Sesscode' => intval(self::$data['SID']),
+            ));
+
             if (!PEAR::isError($ret) || $ret["Status"] != "OK") {
                 $ddoc = new Parser_DigiDoc($ret['SignedDocData']);
                 if (preg_match("/<Signature Id=\"" . $signatureId . "\"(.*?)<\/Signature>/s", $ddoc->getDigiDoc(), $m)) {
@@ -539,7 +566,6 @@ class Sign {
             $phone = "372" . $phone;
         }
 
-        $dd = new Base_DigiDoc();
         $digests = array();
         $DataFileDigests = new stdClass;
         for ($i = 0;$i < 1 && $i < count(self::$files);$i++) {
@@ -553,7 +579,27 @@ class Sign {
         if (!$lang) $lang = "EST";
         if (!$message) $message = "";
 
-        $result = $dd->WSDL->MobileCreateSignature("", "EE", $phone, $lang, DD_SERVICE_NAME, "", "", "", "", "", "", "", $DataFileDigests, "DIGIDOC-XML", "1.3", "S" . $signature_number, "asynchClientServer", NULL);
+        $dd = new Base_DigiDoc();
+        $result = $dd->query('MobileCreateSignature', array(
+            'IDCode' => '',
+            'Country' => 'EE',
+            'PhoneNo' => $phone,
+            'Language' => $lang,
+            'ServiceName' => DD_SERVICE_NAME,
+            'MessageToDisplay' => '',
+            'Role' => '',
+            'City' => '',
+            'StateOrProvince' => '',
+            'PostalCode' => '',
+            'CountryName' => '',
+            'SigningProfile' => '',
+            'Datafiles' => $DataFileDigests,
+            'Format' => "DIGIDOC-XML",
+            'Version' => "1.3",
+            'SignatureID' => "S" . $signature_number,
+            'MessagingMode' => "asynchClientServer",
+            'AsyncConfiguration' => NULL,
+        ));
 
         if ((isset($result) && is_object($result) && is_a($result, 'SOAP_Fault')) || !isset($result["Status"])) {
             switch ($result->backtrace[0]["args"][0]) {
@@ -618,7 +664,10 @@ class Sign {
         }
 
         $dd = new Base_DigiDoc();
-        $result = $dd->WSDL->GetMobileCreateSignatureStatus(self::$sid, FALSE);
+        $result = $dd->query('GetMobileCreateSignatureStatus', array(
+            'Sesscode' => self::$sid,
+            'WaitSignature' => FALSE
+        ));
 
         if (is_object($result)) {
             self::$error = $result->userinfo->message;

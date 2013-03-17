@@ -1,15 +1,15 @@
 <?php
 
-error_reporting(E_ALL & ~(E_STRICT|E_NOTICE|E_WARNING));
+error_reporting(E_ALL & ~(E_STRICT | E_NOTICE | E_WARNING));
 
 session_start();
-require_once("lib/api.php");
-require_once("filestore.php");
+require_once "lib/api.php";
+require_once "filestore.php";
 
 Header("Content-type: text/javascript; Charset=utf-8");
 $response = array();
 
-/*
+/**
  * URLHandlers
  * ===========
  *
@@ -18,9 +18,9 @@ $response = array();
  * Vigade korral on kasutusel struktuur
  * {status:"ERROR", message:"Vea kirjeldus", code="vea_identifikaator"}
  */
+class URLHandlers {
 
-class URLHandlers{
-	/*
+    /**
      * mobileAuthRequestHandler
      * ------------------------
      *
@@ -48,14 +48,15 @@ class URLHandlers{
      * - telefoni number puudub või on vigane
      * - telefoni number ei ole Mobiil-ID teenusega liitunud, levist väljas vms ühendusvusprobleemid
      *
-	 */
-    public static function mobileAuthRequestHandler(){
-    	$sid = Auth::MobileAuthRequest($_GET["phone"],$_GET["message"],$_GET["lang"]);
-        if(!$sid){
+     */
+    public static function mobileAuthRequestHandler() {
+        $sid = Auth::MobileAuthRequest($_GET["phone"], $_GET["message"], $_GET["lang"]);
+        if (!$sid) {
             $response["status"] = "ERROR";
             $response["message"] = Auth::$error;
             $response["code"] = Auth::$error_code;
-        }else{
+        }
+        else {
             $response["status"] = "OK";
             $response["sid"] = Auth::$sid;
             $response["code"] = Auth::$data["ChallengeID"];
@@ -64,7 +65,7 @@ class URLHandlers{
         exit;
     }
 
-    /*
+    /**
      * mobileAuthStatusHandler
      * ------------------------
      *
@@ -92,23 +93,26 @@ class URLHandlers{
      * - sessiooni võti on määramata või see ei kehti
      *
      */
-    public static function mobileAuthStatusHandler(){
-    	Auth::MobileAuthStatus($_GET["sid"]);
-        if(Auth::$error){
+    public static function mobileAuthStatusHandler() {
+        Auth::MobileAuthStatus($_GET["sid"]);
+        if (Auth::$error) {
             $response["status"] = "ERROR";
             $response["message"] = Auth::$error;
             $response["code"] = Auth::$error_code;
-        }else if(Auth::$stage == "authenticated"){
+        }
+        elseif (Auth::$stage == "authenticated") {
             $response["status"] = "AUTHENTICATED";
             $response["data"] = array(
-                "UserIDCode"    => Auth::$data["UserIDCode"],
+                "UserIDCode" => Auth::$data["UserIDCode"],
                 "UserGivenname" => Auth::$data["UserGivenname"],
-                "UserSurname"   => Auth::$data["UserSurname"],
-                "UserCountry"   => Auth::$data["UserCountry"]
+                "UserSurname" => Auth::$data["UserSurname"],
+                "UserCountry" => Auth::$data["UserCountry"]
             );
-        }else if(Auth::$stage == "progress"){
+        }
+        elseif (Auth::$stage == "progress") {
             $response["status"] = "WAITING";
-        }else{
+        }
+        else {
             $response["status"] = "ERROR";
             $response["message"] = "Unknown error";
             $response["code"] = "PHONE_UNKNOWN";
@@ -117,7 +121,7 @@ class URLHandlers{
         exit;
     }
 
-    /*
+    /**
      * mobileAuthLogoutHandler
      * -----------------------
      *
@@ -130,14 +134,14 @@ class URLHandlers{
      * {status:"LOGGED_OUT"}
      *
      */
-    public static function mobileAuthLogoutHandler(){
-    	Auth::Logout();
+    public static function mobileAuthLogoutHandler() {
+        Auth::Logout();
         $response["status"] = "LOGGED_OUT";
         echo json_encode($response);
         exit;
     }
 
-    /*
+    /**
      * addFileHandler
      * --------------
      *
@@ -169,16 +173,16 @@ class URLHandlers{
      * - Probleemid faili salvestamisel kettale
      *
      */
-    public static function addFileHandler(){
-        if(!FILESTORE_ALLOW_UPLOADS){
-        	$response["status"] = "ERROR";
+    public static function addFileHandler() {
+        if (!FILESTORE_ALLOW_UPLOADS) {
+            $response["status"] = "ERROR";
             $response["message"] = "This feature is disabled";
             $response["code"] = "NOT_ALLOWED";
             echo json_encode($response);
             exit;
         }
 
-    	if(!Auth::AuthStatus()){
+        if (!Auth::AuthStatus()) {
             $response["status"] = "ERROR";
             $response["message"] = "You need to be authenticated";
             $response["code"] = "PHONE_NOT_AUTHENTICATED";
@@ -189,28 +193,29 @@ class URLHandlers{
         $message = $_REQUEST["contents"];
         $fname = trim($_REQUEST["filename"]);
 
-        if(!$message){
+        if (!$message) {
             $response["status"] = "ERROR";
             $response["message"] = "No file provided";
             $response["code"] = "EMPTY_FILE";
-        }else{
+        }
+        else {
             // salvesta fail ja tagasta FID
             $fid = FileStore::add($message, $fname);
-            if($fid){
+            if ($fid) {
                 $response["status"] = "OK";
                 $response["FID"] = $fid;
-            }else{
+            }
+            else {
                 $response["status"] = "ERROR";
                 $response["message"] = "Error saving file";
                 $response["code"] = "FILE_ERROR";
             }
         }
-
         echo json_encode($response);
         exit;
     }
 
-    /*
+    /**
      * getDDOCHandler
      * --------------
      *
@@ -227,12 +232,12 @@ class URLHandlers{
      * - FID on puudu või vale
      *
      */
-    public static function getDDOCHandler(){
-    	FileStore::downloadDDOC($_GET["fid"]);
+    public static function getDDOCHandler() {
+        FileStore::downloadDDOC($_GET["fid"]);
         exit;
     }
 
-    /*
+    /**
      * mobileSignRequestHandler
      * ------------------------
      *
@@ -263,8 +268,8 @@ class URLHandlers{
      * - FID on puudu või vigane
      *
      */
-    public static function mobileSignRequestHandler(){
-    	if(!Auth::AuthStatus() || !Auth::$data["PhoneNumber"]){
+    public static function mobileSignRequestHandler() {
+        if (!Auth::AuthStatus() || !Auth::$data["PhoneNumber"]) {
             $response["status"] = "ERROR";
             $response["message"] = "You need to be authenticated";
             $response["code"] = "NOT_AUTHENTICATED";
@@ -273,7 +278,7 @@ class URLHandlers{
         }
 
         $fileData = FileStore::retrieve($_GET["fid"]);
-        if(!$fileData){
+        if (!$fileData) {
             $response["status"] = "ERROR";
             $response["message"] = "Unknown file";
             $response["code"] = "FILE_INVALID";
@@ -283,11 +288,12 @@ class URLHandlers{
 
         Sign::addFile($fileData["contents"], $fileData["fileName"]);
         $sid = Sign::MobileSignRequest(Auth::$data["PhoneNumber"], $_GET["fid"], $_GET["message"], $_GET["lang"], count($fileData["signatures"]));
-        if(!$sid){
+        if (!$sid) {
             $response["status"] = "ERROR";
             $response["message"] = Sign::$error;
             $response["code"] = Sign::$error_code;
-        }else{
+        }
+        else {
             $response["status"] = "OK";
             $response["sid"] = Sign::$sid;
             $response["code"] = Sign::$data["ChallengeID"];
@@ -296,7 +302,7 @@ class URLHandlers{
         exit;
     }
 
-    /*
+    /**
      * mobileSignStatusHandler
      * ------------------------
      *
@@ -320,8 +326,8 @@ class URLHandlers{
      * - sessiooni võti on määramata või see ei kehti
      *
      */
-    public static function mobileSignStatusHandler(){
-    	if(!Auth::AuthStatus() || !Auth::$data["PhoneNumber"]){
+    public static function mobileSignStatusHandler() {
+        if (!Auth::AuthStatus() || !Auth::$data["PhoneNumber"]) {
             $response["status"] = "ERROR";
             $response["message"] = "You need to be authenticated";
             $response["code"] = "NOT_AUTHENTICATED";
@@ -330,30 +336,35 @@ class URLHandlers{
         }
 
         Sign::MobileSignStatus($_GET["sid"]);
-        if(Sign::$error){
+        if (Sign::$error) {
             $response["status"] = "ERROR";
             $response["message"] = Sign::$error;
             $response["code"] = Sign::$error_code;
-        }else if(Sign::$stage == "signed"){
+        }
+        elseif (Sign::$stage == "signed") {
             $response["status"] = "SIGNED";
 
             $fileData = FileStore::retrieve(Sign::$data["FID"]);
             Sign::addFile($fileData["contents"], $fileData["fileName"], $fileData["mimeType"]);
 
-            if(!FileStore::addSignature(Sign::$data["FID"], Sign::$data["Signature"])){
+            if (!FileStore::addSignature(Sign::$data["FID"], Sign::$data["Signature"])) {
                 $response["status"] = "ERROR";
                 $response["message"] = "Adding signature to the file failed";
                 $response["code"] = "FILE_ERROR";
                 unset($_SESSION["Sign_Data"]);
-            }else{
+            }
+            else {
                 $response["FID"] = Sign::$data["FID"];
             }
-        }else if(Sign::$stage == "signed_cached"){
+        }
+        elseif (Sign::$stage == "signed_cached") {
             $response["status"] = "SIGNED";
             $response["FID"] = Sign::$data["FID"];
-        }else if(Sign::$stage == "progress"){
+        }
+        elseif (Sign::$stage == "progress") {
             $response["status"] = "WAITING";
-        }else{
+        }
+        else {
             $response["status"] = "ERROR";
             $response["message"] = "Unknown error";
             $response["code"] = "UNKNOWN_ERROR";
@@ -362,7 +373,7 @@ class URLHandlers{
         exit;
     }
 
-    /*
+    /**
      * defaultHandler
      * --------------
      *
@@ -371,17 +382,16 @@ class URLHandlers{
      * Tagastatab
      * {status:"ERROR", message:"Unknown method", code:"UNKNOWN_METHOD"}
      */
-    public static function defaultHandler(){
-    	$response["status"] = "ERROR";
+    public static function defaultHandler() {
+        $response["status"] = "ERROR";
         $response["message"] = "Unknown method";
         $response["code"] = "UNKNOWN_METHOD";
         echo json_encode($response);
         exit;
     }
 
-
-    public static function cardPrepareSignatureHandler(){
-    	if(!Auth::AuthStatus() || !Auth::$data["UseIDCard"]){
+    public static function cardPrepareSignatureHandler() {
+        if (!Auth::AuthStatus() || !Auth::$data["UseIDCard"]) {
             $response["status"] = "ERROR";
             $response["message"] = "You need to be authenticated";
             $response["code"] = "NOT_AUTHENTICATED";
@@ -393,7 +403,7 @@ class URLHandlers{
         $certId = $_REQUEST["certId"];
         $certHex = $_REQUEST["certHex"];
 
-        if(!$fileId){
+        if (!$fileId) {
             $response["status"] = "ERROR";
             $response["message"] = "No file selected";
             $response["code"] = "NO_FILE";
@@ -401,7 +411,7 @@ class URLHandlers{
             exit;
         }
 
-        if(!$certId || !$certHex){
+        if (!$certId || !$certHex) {
             $response["status"] = "ERROR";
             $response["message"] = "No certificate provided";
             $response["code"] = "NO_CERT";
@@ -410,23 +420,22 @@ class URLHandlers{
         }
 
         $sid = Sign::CardPrepareSignature($fileId, $certId, $certHex);
-        if(!$sid){
+        if (!$sid) {
             $response["status"] = "ERROR";
             $response["message"] = Sign::$error;
             $response["code"] = Sign::$error_code;
-        }else{
+        }
+        else {
             $response["status"] = "OK";
             $response["signatureRequest"] = Sign::$data["signatureRequest"];
             $response["signatureId"] = Sign::$data["signatureId"];
         }
         echo json_encode($response);
         exit;
-
     }
 
-
-    public static function cardFinalizeSignatureHandler(){
-        if(!Auth::AuthStatus() || !Auth::$data["UseIDCard"]){
+    public static function cardFinalizeSignatureHandler() {
+        if (!Auth::AuthStatus() || !Auth::$data["UseIDCard"]) {
             $response["status"] = "ERROR";
             $response["message"] = "You need to be authenticated";
             $response["code"] = "NOT_AUTHENTICATED";
@@ -438,7 +447,7 @@ class URLHandlers{
         $signatureId = $_REQUEST["signatureId"];
         $signatureHex = $_REQUEST["signatureHex"];
 
-        if(!$signatureId || !$signatureHex){
+        if (!$signatureId || !$signatureHex) {
             $response["status"] = "ERROR";
             $response["message"] = "No signature provided";
             $response["code"] = "NO_SIGNATURE";
@@ -447,37 +456,35 @@ class URLHandlers{
         }
 
         $success = Sign::CardFinalizeSignature($signatureId, $signatureHex);
-        if(!$success){
+        if (!$success) {
             $response["status"] = "ERROR";
             $response["message"] = Sign::$error;
             $response["code"] = Sign::$error_code;
-        }else{
-
+        }
+        else {
             $response["status"] = "SIGNED";
-
             $fileData = FileStore::retrieve(Sign::$data["FID"]);
             Sign::addFile($fileData["contents"], $fileData["fileName"], $fileData["mimeType"]);
 
-            if(!FileStore::addSignature(Sign::$data["FID"], Sign::$data["Signature"])){
+            if (!FileStore::addSignature(Sign::$data["FID"], Sign::$data["Signature"])) {
                 $response["status"] = "ERROR";
                 $response["message"] = "Adding signature to the file failed";
                 $response["code"] = "FILE_ERROR";
                 unset($_SESSION["Sign_Data"]);
-            }else{
+            }
+            else {
                 $response["FID"] = Sign::$data["FID"];
             }
-
         }
         echo json_encode($response);
         exit;
-
     }
 }
 
-switch($_GET["action"]){
+switch ($_GET["action"]) {
 
     /***** AUTH *****/
-	case "mobileAuthRequest":
+    case "mobileAuthRequest":
         URLHandlers::mobileAuthRequestHandler();
         break;
     case "mobileAuthStatus":
@@ -502,12 +509,10 @@ switch($_GET["action"]){
         break;
     case "cardPrepareSignature":
         URLHandlers::cardPrepareSignatureHandler();
+        break;
     case "cardFinalizeSignature":
         URLHandlers::cardFinalizeSignatureHandler();
+        break;
     default:
         URLHandlers::defaultHandler();
-
 }
-
-
-?>

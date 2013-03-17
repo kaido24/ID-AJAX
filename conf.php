@@ -1,4 +1,4 @@
-<?
+<?php
 
 define('DD_SERVICE_NAME', 'Testimine');
 define('FILESTORE_ALLOW_UPLOADS', true);
@@ -12,24 +12,23 @@ define('FILESTORE_ALLOW_UPLOADS', true);
  * @copyright   http://pear.php.net/package/SOAP
  */
 
-define('PEAR_PATH', dirname(__FILE__).'/lib/include/_PEAR/'); // Kasutamaks süsteemseid PEARi mooduleid, väärtusta see ''
-
+define('PEAR_PATH', dirname(__FILE__) . '/lib/include/_PEAR/');
+// Kasutamaks süsteemseid PEARi mooduleid, väärtusta see ''
 //define('PEAR_PATH', '');
 
-require_once PEAR_PATH.'SOAP/Client.php';
-
+require_once PEAR_PATH . 'SOAP/Client.php';
 
 /**
  * XML_Unserializer
  *
  * kasutusel SOAP Serveri saadetud xml-vastuste töötlemiseks
  */
-require_once PEAR_PATH.'XML/Unserializer.php';
+require_once PEAR_PATH . 'XML/Unserializer.php';
 
 /**
-* PEAR vigade suunamine (globaalne funktsioon)
-* tanel
-*/
+ * PEAR vigade suunamine (globaalne funktsioon)
+ * tanel
+ */
 if (function_exists('raise_error'))
     PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'raise_error');
 
@@ -44,7 +43,7 @@ define('DDS_ENDPOINT', 'https://www.openxades.org:8443');
 define('DD_WSDL', 'https://www.openxades.org:8443/?wsdl');
 
 # DigiDocService certifcate issuer certificate file
-define('DD_SERVER_CA_FILE', dirname(__FILE__).'/lib/service_certs.pem');
+define('DD_SERVER_CA_FILE', dirname(__FILE__) . '/lib/service_certs.pem');
 
 /**#@+
  * Serveriga ühenduse loomiseks vajalik parameeter
@@ -65,8 +64,7 @@ define('DD_TIMEOUT', '9000');
  * selles hoitakse ka serveri aadressi, mis pärast muutmist enam ei ühti
  * õige aadressiga!
  */
-define('DD_WSDL_FILE', dirname(__FILE__).'/wsdl.class.php');
-
+define('DD_WSDL_FILE', dirname(__FILE__) . '/wsdl.class.php');
 /*
  * NB! Uue wsdl.class.php faili genereerimisel tuleb muuta
  * WebService_DigiDocService_DigiDocService funktsioon järgmisele kujule:
@@ -86,4 +84,3 @@ define('DD_DEF_LANG', 'EST');
 
 define('LOCAL_FILES', TRUE);
 
-?>

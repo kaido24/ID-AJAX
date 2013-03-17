@@ -34,7 +34,7 @@
  *
  *
  * Miinimumnõuded klassi tööks
- * - <b>PHP 4.3.4</b> vļæ½i uuem
+ * - <b>PHP 4.3.4</b> või uuem
  * - <i>kui soov kasutada HTTPS ühendust siis lisaks ka CURL-extension</i>
  * - <i>sessionite kasutamine peab olema lubatud</i>
  *
@@ -60,7 +60,7 @@
  *
  * - <b>Browser</b>
  * - MS Internet Explorer 5.x või uuem
- * - Mozilla põhine brauser (Win32 vļæ½i Linux)
+ * - Mozilla põhine brauser (Win32 või Linux)
  * - Browseril vajalikud draiverid installitud ID-kaardi ja DigiDoc-ga
  *   tööks. Vajalik tarkvara on leitav ID-Kaardi ametlikul kodulehel
  *   http://www.id.ee/installer
@@ -875,7 +875,8 @@ class File {
      * @return    boolean
      */
     function saveAs($name, $content, $MIME = 'text/plain', $charset = '') {
-        $name = str_replace("\'", "'", $name); //2009.11.18, Ahto, asendame "\'" -> "'"
+        //2009.11.18, Ahto, asendame "\'" -> "'"
+        $name = str_replace("\'", "'", $name);
         ob_end_clean();
         ob_clean();
         $browser = File::getBrowser();
@@ -890,10 +891,11 @@ class File {
         }
         else {
             header('Content-Type:' . $MIME);
-        } //else
-        header('Expires:' . gmdate('D, d M Y H:i:s') . ' GMT'); #Alati aegunud, et ei loetaks cache-st
+        }
+        // Alati aegunud, et ei loetaks cache-st
+        header('Expires:' . gmdate('D, d M Y H:i:s') . ' GMT');
         $browser = File::getBrowser();
-        #        File::VarDump($browser);
+
         // IE need specific headers
         if ($browser['BROWSER_AGENT'] == 'IE') {
             header('Cache-Control:must-revalidate, post-check=0, pre-check=0');
@@ -911,7 +913,7 @@ class File {
     }
 
     /**
-     * Leiab kasutaja brauseri ja Op.sļæ½steemi
+     * Leiab kasutaja brauseri ja Op.süsteemi
      *
      * Tagastab vektorina info kasutaja Op.süsteemi ja brauseri kohta
      * - OS             : Operatsiooni süsteem (Win,Mac,Linux,Unix,OS/2,Other)
@@ -921,57 +923,52 @@ class File {
      * @return    array
      */
     function getBrowser() {
-        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
-            $HTTP_USER_AGENT = $_SERVER['HTTP_USER_AGENT'];
+        $res = array(
+          'OS' => 'Other',
+          'BROWSER_VER' => 0,
+          'BROWSER_AGENT' => 'OTHER',
+        );
+
+        if (!isset($_SERVER['HTTP_USER_AGENT']) || $_SERVER['HTTP_USER_AGENT'] == '') {
+            return $res;
         }
-        elseif (!isset($HTTP_USER_AGENT)) {
-            $HTTP_USER_AGENT = '';
-        }
-        $res = array();
+        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+
         // 1. Platform
-        if (strstr($HTTP_USER_AGENT, 'Win')) {
-            $res['OS'] = 'Win';
+        $platforms = array('Win', 'Mac', 'Linux', 'Unix', 'OS/2');
+        foreach ($platforms as $platform) {
+            if (strstr($user_agent, $platform)) {
+                $res['OS'] = $platform;
+                break;
+            }
         }
-        elseif (strstr($HTTP_USER_AGENT, 'Mac')) {
-            $res['OS'] = 'Mac';
-        }
-        elseif (strstr($HTTP_USER_AGENT, 'Linux')) {
-            $res['OS'] = 'Linux';
-        }
-        elseif (strstr($HTTP_USER_AGENT, 'Unix')) {
-            $res['OS'] = 'Unix';
-        }
-        elseif (strstr($HTTP_USER_AGENT, 'OS/2')) {
-            $res['OS'] = 'OS/2';
-        }
-        else {
-            $res['OS'] = 'Other';
-        }
-        // 2. browser and version
-        if (preg_match('@Opera(/| )([0-9].[0-9]{1,2})@', $HTTP_USER_AGENT, $log_version)) {
+
+        // 2. Browser and version
+        if (preg_match('@Opera(/| )([0-9].[0-9]{1,2})@', $user_agent, $log_version)) {
             $res['BROWSER_VER'] = $log_version[2];
             $res['BROWSER_AGENT'] = 'OPERA';
         }
-        elseif (preg_match('@MSIE ([0-9].[0-9]{1,2})@', $HTTP_USER_AGENT, $log_version)) {
+        elseif (preg_match('@MSIE ([0-9].[0-9]{1,2})@', $user_agent, $log_version)) {
             $res['BROWSER_VER'] = $log_version[1];
             $res['BROWSER_AGENT'] = 'IE';
         }
-        elseif (preg_match('@OmniWeb/([0-9].[0-9]{1,2})@', $HTTP_USER_AGENT, $log_version)) {
+        elseif (preg_match('@OmniWeb/([0-9].[0-9]{1,2})@', $user_agent, $log_version)) {
             $res['BROWSER_VER'] = $log_version[1];
             $res['BROWSER_AGENT'] = 'OMNIWEB';
-            //} else if (ereg('Konqueror/([0-9].[0-9]{1,2})', $HTTP_USER_AGENT, $log_version)) {
-            // Konqueror 2.2.2 says Konqueror/2.2.2
-            // Konqueror 3.0.3 says Konqueror/3
+        //}
+        //elseif (ereg('Konqueror/([0-9].[0-9]{1,2})', $user_agent, $log_version)) {
+        // Konqueror 2.2.2 says Konqueror/2.2.2
+        // Konqueror 3.0.3 says Konqueror/3
         }
-        elseif (preg_match('@(Konqueror/)(.*)(;)@', $HTTP_USER_AGENT, $log_version)) {
+        elseif (preg_match('@(Konqueror/)(.*)(;)@', $user_agent, $log_version)) {
             $res['BROWSER_VER'] = $log_version[2];
             $res['BROWSER_AGENT'] = 'KONQUEROR';
         }
-        elseif (preg_match('@Mozilla/([0-9].[0-9]{1,2})@', $HTTP_USER_AGENT, $log_version) && preg_match('@Safari/([0-9]*)@', $HTTP_USER_AGENT, $log_version2)) {
+        elseif (preg_match('@Mozilla/([0-9].[0-9]{1,2})@', $user_agent, $log_version) && preg_match('@Safari/([0-9]*)@', $user_agent, $log_version2)) {
             $res['BROWSER_VER'] = $log_version[1] . '.' . $log_version2[1];
             $res['BROWSER_AGENT'] = 'SAFARI';
         }
-        elseif (preg_match('@Mozilla/([0-9].[0-9]{1,2})@', $HTTP_USER_AGENT, $log_version)) {
+        elseif (preg_match('@Mozilla/([0-9].[0-9]{1,2})@', $user_agent, $log_version)) {
             $res['BROWSER_VER'] = $log_version[1];
             $res['BROWSER_AGENT'] = 'MOZILLA';
         }
@@ -1051,7 +1048,8 @@ class File {
             $ret['type'] = $name;
             if (!is_dir(DD_UPLOAD_DIR)) File::DirMake(DD_UPLOAD_DIR);
             //                if(File::DirMake(DD_UPLOAD_DIR) != DIR_ERR_OK)
-            $_FILES[$name]['name'] = str_replace("\'", "'", $_FILES[$name]['name']); //2009.11.18, Ahto, asendame "\'" -> "'"
+            // 2009.11.18, Ahto, asendame "\'" -> "'"
+            $_FILES[$name]['name'] = str_replace("\'", "'", $_FILES[$name]['name']);
             if (move_uploaded_file($_FILES[$name]['tmp_name'], DD_UPLOAD_DIR . $_FILES[$name]['name'])) {
                 $ret['name'] = $_FILES[$name]['name'];
                 $ret['size'] = $_FILES[$name]['size'];
@@ -1081,39 +1079,10 @@ class File {
      * @throws
      */
     function FixEstFileName($name) {
-        //ļæ½ļæ½ļæ½ļæ½ ļæ½ļæ½ļæ½ļæ½
         $nameX = $name;
-        #preg_match("'(.*)([^/\\\\]*)(\.\w+)$'U", $name, $match);
-        #$nameX = $match[1].base64_encode($match[2]).$match[3];
         $name = preg_replace("'[^a-z0-9]'", "X", utf8_decode($name));
-        /*$name = str_replace('ļæ½','#otilde;', $name);
-        $name = str_replace('ļæ½','#auml;', $name);
-        $name = str_replace('ļæ½','#ouml;', $name);
-        $name = str_replace('ļæ½','#uuml;', $name);
-        $name = str_replace('ļæ½','#zacut;', $name);
-        $name = str_replace('ļæ½','#sacut;', $name);
-
-        $name = str_replace('ļæ½','#Otilde;', $name);
-        $name = str_replace('ļæ½','#Auml;', $name);
-        $name = str_replace('ļæ½','#Ouml;', $name);
-        $name = str_replace('ļæ½','#Uuml;', $name);
-        $name = str_replace('ļæ½','#Zacut;', $name);
-        $name = str_replace('ļæ½','#Sacut;', $name);
-        if($name==$nameX){
-        $name = utf8_decode($name);
-        $name = str_replace('ļæ½','#otilde;', $name);
-        $name = str_replace('ļæ½','#auml;', $name);
-        $name = str_replace('ļæ½','#ouml;', $name);
-        $name = str_replace('ļæ½','#uuml;', $name);
-
-        $name = str_replace('ļæ½','#Otilde;', $name);
-        $name = str_replace('ļæ½','#Auml;', $name);
-        $name = str_replace('ļæ½','#Ouml;', $name);
-        $name = str_replace('ļæ½','#Uuml;', $name);
-        }
-        */
         return $nameX;
-    } // end func
+    }
 
     /**
      * Abifunktsioon debug-info väljastamiseks
@@ -1121,16 +1090,10 @@ class File {
      * @access     public
      */
     function VarDump($var) {
-        #echo '<pre>';print_r($var);echo '</pre>';
-        echo '
-<pre>
-=================================================================
-';
+        $line = '=================================================================';
+        echo "\n<pre>\n" . $line . "\n";
         print_r($var);
-        echo '
-=================================================================
-</pre>
-';
+        echo "\n" . $line . "\n</pre>\n";
     }
 }
 

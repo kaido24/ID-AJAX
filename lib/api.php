@@ -1,4 +1,4 @@
- <?php
+<?php
 
 require_once dirname(__FILE__) . '/../conf.php';
 require_once dirname(__FILE__) . '/../lib/include/DigiDoc.class.php';
@@ -19,7 +19,7 @@ class Auth {
      *
      * Autentimise sessiooni ID
      */
-    public static $sid = null;
+    public static $sid = NULL;
 
     /**
      * Auth.$stage -> String
@@ -27,26 +27,26 @@ class Auth {
      * Kui kaugel autentimine parasjagu on. "authenticated" näitab, et korras, "progress"
      * et tuleb oodata
      */
-    public static $stage = null;
+    public static $stage = NULL;
 
     /**
      * Auth.$error -> String
      *
      * Tekstilisel kujul veateade
      */
-    public static $error = false;
+    public static $error = FALSE;
 
     /**
      * Auth.$error_code -> String
      *
      * Vea kood teksti kujul
      */
-    public static $error_code = false;
+    public static $error_code = FALSE;
 
     /**
      * Auth.$data -> Object
      *
-     * Sisselogimise andmed. Tuleb kontrollida, kas Authenticated==true
+     * Sisselogimise andmed. Tuleb kontrollida, kas Authenticated==TRUE
      */
     public static $data = array();
 
@@ -56,16 +56,15 @@ class Auth {
      * Indikeerib, kas kasutaja on sisse logitud (sessiooni andmed OK) või mitte
      */
     public static function AuthStatus() {
-        $data = array();
-        if ($_SESSION["Auth_Data"]) {
-            $data = $_SESSION["Auth_Data"] ? unserialize($_SESSION["Auth_Data"]) : false;
-            self::$data = $data;
+        if (isset($_SESSION['Auth_Data']) and $_SESSION['Auth_Data']) {
+            self::$data = unserialize($_SESSION['Auth_Data']);
             // puhverdatud andmed
             if (self::$data["Authenticated"]) {
                 self::$stage = "authenticated";
-                return true;
+                return TRUE;
             }
-        return false;
+        }
+        return FALSE;
     }
 
     /**
@@ -74,10 +73,10 @@ class Auth {
      * Logib kasutaja välja, tühjendades sessiooni
      */
     public static function Logout() {
-        self::$sid = null;
-        self::$stage = null;
-        self::$error = null;
-        self::$error_code = null;
+        self::$sid = NULL;
+        self::$stage = NULL;
+        self::$error = NULL;
+        self::$error_code = NULL;
         self::$data = array();
         unset($_SESSION["Auth_Data"]);
         unset($_SESSION["Sign_Data"]);
@@ -90,7 +89,7 @@ class Auth {
      * - $lang (String): kasutatav keel, EST, ENG, RUS
      *
      * Kutsub ellu MID autentimise. Edukal autentimise alguse puhul tagastatakse SID,
-     * vastasel korral aga false
+     * vastasel korral aga FALSE
      */
     public static function MobileAuthRequest($phone, $message_to_display = "", $lang = "EST") {
         $phone = str_replace(" ", "", $phone);
@@ -103,7 +102,7 @@ class Auth {
             self::$error = "Invalid phone number";
             self::$error_code = "PHONE_INVALID";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
 
         if (substr($phone, 0, 3) != "372") {
@@ -125,7 +124,7 @@ class Auth {
                     self::$error_code = "PHONE_SUSPENDED";
                     break;
                 case 303:
-                    self::$error = "Mobiil-ID is not activated. To activate, follow URL <A HREF=\"http://mobiil.id.ee/akt/\">mobiil.id.ee/akt</A>.";
+                    self::$error = "Mobiil-ID is not activated. To activate, follow URL <a href=\"http://mobiil.id.ee/akt/\">mobiil.id.ee/akt</a>.";
                     self::$error_code = "PHONE_NOT_ACTIVATED";
                     break;
                 default:
@@ -134,21 +133,21 @@ class Auth {
             }
             self::$stage = "error";
             unset($_SESSION["Auth_Data"]);
-            return false;
+            return FALSE;
         }
         elseif ($result["Status"] == "OK") {
             // OK
             self::$sid = intval($result["Sesscode"]);
             self::$data = array(
                 "SID"           => self::$sid,
-                "Authenticated" => false,
+                "Authenticated" => FALSE,
                 "ChallengeID"   => $result["ChallengeID"],
                 "UserIDCode"    => $result["UserIDCode"],
                 "UserGivenname" => $result["UserGivenname"],
                 "UserSurname"   => $result["UserSurname"],
                 "UserCountry"   => $result["UserCountry"],
                 "PhoneNumber"   => $phone,
-                "UseIDCard"     => false
+                "UseIDCard"     => FALSE
             );
             self::$stage = "progress";
             $_SESSION["Auth_Data"] = serialize(self::$data);
@@ -159,33 +158,33 @@ class Auth {
             self::$error = "Authentication failed, user certificate is not valid!";
             self::$stage = "error";
             unset($_SESSION["Auth_Data"]);
-            return false;
+            return FALSE;
         }
     }
 
     /**
-     * Auth.MobileAuthStatus([$sid = false]) -> Boolean
+     * Auth.MobileAuthStatus([$sid = FALSE]) -> Boolean
      * - $sid (Integer): Autentimise sessiooni võti (pärineb MobileAuthRequest päringult)
      *
-     * Kontrollib, kaugel autentimine on. Juhul kui tagastati true, siis õnnestus, kõikidel
-     * muudel juhtudel on false. Täpsustuseks tuleb kontrollida Auth.stage muutujat, kui see
+     * Kontrollib, kaugel autentimine on. Juhul kui tagastati TRUE, siis õnnestus, kõikidel
+     * muudel juhtudel on FALSE. Täpsustuseks tuleb kontrollida Auth.stage muutujat, kui see
      * on "progress", siis on ootel. Kui "error", siis viga.
      */
-    public static function MobileAuthStatus($sid = false) {
+    public static function MobileAuthStatus($sid = FALSE) {
         if ($sid) {
             self::$sid = intval($sid);
         }
 
         $data = array();
         if ($_SESSION["Auth_Data"]) {
-            $data = $_SESSION["Auth_Data"] ? unserialize($_SESSION["Auth_Data"]) : false;
+            $data = $_SESSION["Auth_Data"] ? unserialize($_SESSION["Auth_Data"]) : FALSE;
             self::$data = $data;
         }
 
-        // puhverdatud andmed
+        // Puhverdatud andmed
         if (self::$data["Authenticated"] && (self::$data["SID"] == $sid || !$sid)) {
             self::$stage = "authenticated";
-            return true;
+            return TRUE;
         }
 
         // ID puudub, sisselogitud polnud
@@ -193,7 +192,7 @@ class Auth {
             self::$error = "No session ID";
             self::$error_code = "PHONE_INVALID_SID";
             self::$stage = "error";
-            return null;
+            return NULL;
         }
 
         $dd = new Base_DigiDoc();
@@ -204,7 +203,7 @@ class Auth {
             self::$error = $result->userinfo->message;
             self::$error_code = "PHONE_SOAP_FAULT";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
 
         if (strlen($result["Status"]) > 3) {
@@ -221,9 +220,9 @@ class Auth {
             case "USER_AUTHENTICATED":
                 self::$stage = "authenticated";
                 self::$data = $_SESSION["Auth_Data"] ? unserialize($_SESSION["Auth_Data"]) : array();
-                self::$data["Authenticated"] = true;
+                self::$data["Authenticated"] = TRUE;
                 $_SESSION["Auth_Data"] = serialize(self::$data);
-                return true;
+                return TRUE;
                 break;
             case "EXPIRED_TRANSACTION":
                 self::$error = "Timeout reached!";
@@ -268,7 +267,7 @@ class Auth {
             default:
                 self::$stage = "progress";
         }
-        return false;
+        return FALSE;
     }
 
 
@@ -281,7 +280,7 @@ class Auth {
             self::$error = "Invalid Card data";
             self::$error_code = "CARD_INVALID_DATA";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
         $l = preg_split('|/|', $s, -1, PREG_SPLIT_NO_EMPTY);
 
@@ -293,16 +292,16 @@ class Auth {
 
         self::$stage = "authenticated";
         self::$data = array(
-            "Authenticated" => true,
+            "Authenticated" => TRUE,
             "UserIDCode"    => $result["serialNumber"],
             "UserGivenname" => $result["GN"],
             "UserSurname"   => $result["SN"],
             "UserCountry"   => $result["C"],
-            "PhoneNumber"   => false,
-            "UseIDCard"     => true);
+            "PhoneNumber"   => FALSE,
+            "UseIDCard"     => TRUE);
 
         $_SESSION["Auth_Data"] = serialize(self::$data);
-        return true;
+        return TRUE;
     }
 
     public static function certstr2utf8($str) {
@@ -328,16 +327,16 @@ class Auth {
 
 class Sign {
 
-    public static $sid = false;
-    public static $stage = false;
-    public static $error = false;
-    public static $error_code = false;
+    public static $sid = FALSE;
+    public static $stage = FALSE;
+    public static $error = FALSE;
+    public static $error_code = FALSE;
     public static $data = array();
     public static $files = array();
 
     public static $template = "<DataFile xmlns=\"http://www.sk.ee/DigiDoc/v1.3.0#\" ContentType=\"EMBEDDED_BASE64\" Filename=\"%s\" Id=\"%s\" MimeType=\"%s\" Size=\"%s\">%s\n</DataFile>";
 
-    public static function addFile($contents, $fname = "test.txt", $mime = false) {
+    public static function addFile($contents, $fname = "test.txt", $mime = FALSE) {
         $id = "D" . count(self::$files);
         $fname = $fname;
         if (!$mime) {
@@ -358,16 +357,16 @@ class Sign {
 		      );
     }
 
-    public static function generateDDOC($signatures = false) {
-        if ($signatures !== false) {
-            self::$data["Signed"] = true;
+    public static function generateDDOC($signatures = FALSE) {
+        if ($signatures !== FALSE) {
+            self::$data["Signed"] = TRUE;
             self::$data["Signature"] = join($signatures, "");
             if (!self::$data["Signature"]) {
                 self::$data["Signature"] = "";
             }
         }
         if (!self::$data["Signed"] || !count(self::$files)) {
-            return false;
+            return FALSE;
         }
         $ddoc_contents = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $ddoc_contents.= '<SignedDoc format="DIGIDOC-XML" version="1.3" xmlns="http://www.sk.ee/DigiDoc/v1.3.0#">' . "\n";
@@ -379,7 +378,7 @@ class Sign {
         return $ddoc_contents;
     }
 
-    public static function downloadDDOC($fname = false) {
+    public static function downloadDDOC($fname = FALSE) {
         if (!$fname) {
             $fname = "container";
         }
@@ -407,7 +406,7 @@ class Sign {
             self::$error = "Unknown file";
             self::$error_code = "FILE_INVALID";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
 
         if (count($file["signatures"])) {
@@ -444,7 +443,7 @@ class Sign {
             self::$data = array(
                 "SID"           => self::$sid,
                 "FID"           => $fid,
-                "Signed"        => false,
+                "Signed"        => FALSE,
                 "Signature"     => "",
                 "signatureRequest" => $signatureData["SignedInfoDigest"],
                 "signatureId" => $signatureData["SignatureId"]
@@ -458,7 +457,7 @@ class Sign {
             self::$error_code = "CARD_SESSION";
             self::$stage = "error";
             unset($_SESSION["Sign_Data"]);
-            return false;
+            return FALSE;
         }
     }
 
@@ -467,7 +466,7 @@ class Sign {
         $ddoc = new Parser_DigiDoc();
         $data = array();
         if ($_SESSION["Sign_Data"]) {
-            $data = $_SESSION["Sign_Data"] ? unserialize($_SESSION["Sign_Data"]) : false;
+            $data = $_SESSION["Sign_Data"] ? unserialize($_SESSION["Sign_Data"]) : FALSE;
             self::$data = $data;
         }
 
@@ -476,7 +475,7 @@ class Sign {
             self::$error_code = "SESSION_INVALID";
             self::$stage = "error";
             unset($_SESSION["Sign_Data"]);
-            return false;
+            return FALSE;
         }
 
         $ret = $dd->WSDL->FinalizeSignature(
@@ -502,7 +501,7 @@ class Sign {
                     self::$error_code = "CARD_SIGNATURE";
                     self::$stage = "error";
                     unset($_SESSION["Sign_Data"]);
-                    return false;
+                    return FALSE;
                 }
             }
             else {
@@ -510,20 +509,20 @@ class Sign {
                 self::$error_code = "CARD_SIGNATURE";
                 self::$stage = "error";
                 unset($_SESSION["Sign_Data"]);
-                return false;
+                return FALSE;
             }
 
-            self::$data["Signed"] = true;
+            self::$data["Signed"] = TRUE;
             self::$data["Signature"] = $signature;
             $_SESSION["Sign_Data"] = serialize(self::$data);
-            return true;
+            return TRUE;
         }
         else {
             self::$error = $ret->getMessage() ? $ret->getMessage() : "Error creating signature";
             self::$error_code = "CARD_SESSION";
             self::$stage = "error";
             unset($_SESSION["Sign_Data"]);
-            return false;
+            return FALSE;
         }
     }
 
@@ -534,7 +533,7 @@ class Sign {
             self::$error = "Invalid phone number";
             self::$error_code = "PHONE_INVALID";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
         if (substr($phone, 0, 3) != "372") {
             $phone = "372" . $phone;
@@ -577,7 +576,7 @@ class Sign {
             }
             self::$stage = "error";
             unset($_SESSION["Sign_Data"]);
-            return false;
+            return FALSE;
         }
         elseif ($result["Status"] == "OK") {
             // OK
@@ -586,7 +585,7 @@ class Sign {
             self::$data = array(
                 "SID"           => self::$sid,
                 "FID"           => $fid,
-                "Signed"        => false,
+                "Signed"        => FALSE,
                 "Signature"	    => "",
                 "ChallengeID"   => $result["ChallengeID"]
             );
@@ -596,26 +595,26 @@ class Sign {
         }
     }
 
-    public static function MobileSignStatus($sid = false) {
+    public static function MobileSignStatus($sid = FALSE) {
         if ($sid) {
             self::$sid = intval($sid);
         }
         $data = array();
         if ($_SESSION["Sign_Data"]) {
-            $data = $_SESSION["Sign_Data"] ? unserialize($_SESSION["Sign_Data"]) : false;
+            $data = $_SESSION["Sign_Data"] ? unserialize($_SESSION["Sign_Data"]) : FALSE;
             self::$data = $data;
         }
         // puhverdatud andmed
         if (self::$data["Signed"] && (self::$data["SID"] == $sid || !$sid)) {
             self::$stage = "signed_cached";
-            return true;
+            return TRUE;
         }
         // ID puudub, sisselogitud polnud
         if (!self::$sid) {
             self::$error = "No session ID";
             self::$error_code = "PHONE_INVALID_SID";
             self::$stage = "error";
-            return null;
+            return NULL;
         }
 
         $dd = new Base_DigiDoc();
@@ -625,7 +624,7 @@ class Sign {
             self::$error = $result->userinfo->message;
             self::$error_code = "PHONE_SOAP_FAULT";
             self::$stage = "error";
-            return false;
+            return FALSE;
         }
         if (strlen($result["Status"]) > 3) {
             $status = $result["Status"];
@@ -640,10 +639,10 @@ class Sign {
             case "SIGNATURE":
                 self::$stage = "signed";
                 self::$data = $_SESSION["Sign_Data"] ? unserialize($_SESSION["Sign_Data"]) : array();
-                self::$data["Signed"] = true;
+                self::$data["Signed"] = TRUE;
                 self::$data["Signature"] = $result["Signature"];
                 $_SESSION["Sign_Data"] = serialize(self::$data);
-                return true;
+                return TRUE;
             case "EXPIRED_TRANSACTION":
                 self::$error = "Timeout reached!";
                 self::$error_code = "PHONE_EXPIRED_TRANSACTION";
@@ -687,7 +686,7 @@ class Sign {
             default:
                 self::$stage = "progress";
         }
-        return false;
+        return FALSE;
     }
 
     public static function mime_content_type($filename) {

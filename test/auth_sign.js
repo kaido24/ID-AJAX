@@ -1,13 +1,13 @@
-$(document).observe("dom:loaded", function () {
+$(document).ready(function () {
 
     // mobiil ID'ga autoriseerimise vorm
-    $("mid_form").observe("submit", function (event) {
+    $("#mid_form").submit(function (event) {
         Event.stop(event);
-        do_mobile_auth()
+        do_mobile_auth();
     });
 
     // id kaardiga autoriseerimise nupp
-    $("cardauth").observe("click", function (event) {
+    $("#cardauth").click(function (event) {
         Event.stop(event);
         do_card_auth();
     });
@@ -16,13 +16,13 @@ $(document).observe("dom:loaded", function () {
     init_card_plugin();
 
     // id kaardiga allkirjastamise nupp
-    $("cardsign").observe("click", function (event) {
+    $("#cardsign").click(function (event) {
         Event.stop(event);
         do_card_signing();
     });
 
     // mobiil id'ga allkirjastamise nupp
-    $("midsign").observe("click", function (event) {
+    $("#midsign").click(function (event) {
         Event.stop(event);
         do_mobile_signing();
     });
@@ -31,58 +31,51 @@ $(document).observe("dom:loaded", function () {
 
 
 function do_card_auth() {
-    $("tulemus").show();
-    $("tulemus").innerHTML = "Oota...";
-    $("nupp").disable();
+    $("#tulemus").html("Oota...").show();;
+    $("#nupp").disabled = true;
 
     AUTH.cardAuthRequest(function (error, data) {
         if (error) {
-            $("nupp").enable();
-            $("tulemus").innerHTML = "Viga: <br />" + error.message;
+            $("#tulemus").html("Viga: <br />" + error.message);
+            $("#nupp").disabled = false;
             return;
         }
-        $("tulemus").innerHTML = "Tulemus: " + Object.toJSON(data);
-        $("nupp").enable();
+        $("#tulemus").html("Tulemus: " + Object.toJSON(data));
+        $("#nupp").disabled = false;
     });
 }
 
 function do_mobile_auth() {
-    var phone = $("phone").value;
-    $("tulemus").show();
-    $("tulemus").innerHTML = "Oota...";
-    $("nupp").disable();
+    var phone = $("#phone").val();
+    $("#tulemus").html("Oota...").show();
+    $("#nupp").disabled = true;
 
     AUTH.mobileAuthRequest(phone, {
         message: "Testsõnum!"
     }, function (error, data) {
         if (error) {
-            $("nupp").enable();
-            $("tulemus").innerHTML = "Viga: <br />" + error.message;
+            $("#tulemus").html("Viga: <br />" + error.message);
+            $("#nupp").disabled = false;
             return;
         }
-        $("tulemus").innerHTML = "Kood: " + data.code;
+        $("#tulemus").html("Kood: " + data.code);
 
         AUTH.mobileAuthStatus(data.sid, function (error, data) {
             if (error) {
-                $("nupp").enable();
-                $("tulemus").innerHTML = "Viga: <br />" + error.message;
+                $("#tulemus").html("Viga: <br />" + error.message);
+                $("#nupp").disabled = false;
                 return;
             }
-            $("tulemus").innerHTML = "Tulemus: " + Object.toJSON(data);
-            $("nupp").enable();
+            $("#tulemus").html("Tulemus: " + Object.toJSON(data));
+            $("#nupp").disabled = false;
         });
     });
 }
 
 function init_card_plugin() {
-    var pluginElm = new Element("div");
-    pluginElm.setStyle({
-        position: "absolute",
-        left: "-1000px",
-        top: "-1000px"
-    });
-    pluginElm.id = "pluginLocation";
-    document.body.appendChild(pluginElm);
+    $(document).append($('</div>')
+        .attr('id', 'pluginLocation')
+        .css({'position': 'absolute', 'left': '-1000px', 'top': '-1000px'}));
     AUTH.initSigning();
 }
 
@@ -93,7 +86,7 @@ function do_card_signing() {
         method: 'get',
         parameters: {
             filename: "test.txt",
-            contents: $("contents").value
+            contents: $("#contents").val(),
         },
         onComplete: function (response) {
             var data;
@@ -137,7 +130,7 @@ function do_mobile_signing() {
         method: 'post',
         parameters: {
             filename: "test.txt",
-            contents: $("contents").value
+            contents: $("#contents").val(),
         },
         onComplete: function (response) {
             var data;
@@ -162,14 +155,14 @@ function do_mobile_signing() {
             }
 
             // alusta allkirjastamist
-            $("sign-tulemus").update("Oota...").show();
+            $("#sign-tulemus").html("Oota...").show();
             AUTH.mobileSignRequest(data.FID, {
                 message: "Testsõnum!"
             }, function (error, data) {
                 if (error) {
                     return alert(error.message);
                 }
-                $("sign-tulemus").update("Kood: " + data.code);
+                $("#sign-tulemus").html("Kood: " + data.code);
                 AUTH.mobileSignStatus(data.sid, function (error, data) {
                     if (error) {
                         return alert(error.message);

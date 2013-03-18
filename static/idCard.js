@@ -1,17 +1,23 @@
-// Üldised konfiguratsiooniparameetrid
-var knownCAList = ["*"]; // Määrab milliste CA-de sertifikaate kuvatakse läbi plugina. Kui esimene element on "*", siis piirangud puuduvad. Näiteväärtus //var knownCAList = ["ESTEID-SK", "ESTEID-SK 2007", "ESTEID-SK 2011", "TEST-SK"];
+/**
+ * Määrab, milliste CA-de sertifikaate plugin näitab.
+ * Kui esimene element on "*", siis piirangud puuduvad.
+ * Näiteväärtus ["ESTEID-SK", "ESTEID-SK 2007", "ESTEID-SK 2011", "TEST-SK"]
+ */
+var knownCAList = ["*"];
 
-
-/*
+/**
  *  Javascripti klienditeegi versioon 0.12
- *  Käesoleva javascripti klienditeegi dokumentatsiooni levitatakse eraldi dokumendina "Veebis signeerimise Javascripti klienditeek".
+ *  Käesoleva JavaScripti klienditeegi dokumentatsiooni levitatakse eraldi
+ *  dokumendina "Veebis signeerimise Javascripti klienditeek".
  *  Dokumentatsiooni saamiseks ja muude küsimuste korral pöörduda abi@id.ee
  *
  *  Muudatuste ajalugu:
  *
  *  versioon 0.12 14. märts 2012
- *	- Java appleti toe ärakadumisega seoses muudatus: kui allkirjastamiskomponendi valikul midagi muud pole leitud ning jõutakse java appleti laadimiseni, siis senise
- *	appleti laadimise asemel tuleb hoiatus (vt. veakood 100)
+ *	- Java appleti toe ärakadumisega seoses muudatus:
+ *    kui allkirjastamiskomponendi valikul midagi muud pole leitud ning
+ *    jõutakse Java appleti laadimiseni, siis senise appleti laadimise asemel
+ *    tuleb hoiatus (vt. veakood 100)
  *	- Veakoodile 100 vastava teksti detailsemaks kirjutamine
  *	- Veakoodi 1500 (Java allkirjastamismoodul ei käivitunud) ära kaotamine
  *
@@ -29,26 +35,28 @@ var knownCAList = ["*"]; // Määrab milliste CA-de sertifikaate kuvatakse läbi
  *
  *  versioon 0.9  6. jaanuar 2011
  *	- Parandatud plugina tuvastust, varasem versioon põstas  10.6 Safariga ccrashi
+ *
  *  versioon 0.8, 29. detsember 2010
  *	 - Javascripti teegi API-s muutunud: Meetod getCertificates asendatud getCertificate'ga
- *	 - application/x-digidoc plugina puhul võetud kasutusele meetod getCertificate kuna getCertificates'i uutes plugina versioonides enam ei ole
+ *	 - application/x-digidoc plugina puhul võetud kasutusele meetod getCertificate
+ *     kuna getCertificates'i uutes plugina versioonides enam ei ole
  *	 - Lihtsustatud ActiveX-i API kasutamist
  *
  *  versioon 0.7, 15. detsember 2010
  *	 - Lisatud veakoodi 100 kirjeldus
  *
  *  versioon 0.6, 18. oktoober 2010
- *	 - Kõige esimese põlvkonna signeerimise ActiveX-i jaoks vajaliku ASN.1 struktuuri parsimisse lisatud BMPstring välja tüübi tugi
- *	 - Täiustatud plugina laadimise loogikat Macil, parandatud viga mille tõttu ei laetud vanu Maci pluginaid
+ *	 - Kõige esimese põlvkonna signeerimise ActiveX-i jaoks vajaliku ASN.1
+ *     struktuuri parsimisse lisatud BMPstring välja tüübi tugi
+ *	 - Täiustatud plugina laadimise loogikat Macil, parandatud viga mille tõttu
+ *     ei laaditud vanu Maci pluginaid
  *
  *  versioon 0.5, 8. oktoober 2010
  *	- Lisatud 2010 aastal levitatava ID-kaardi baastarkvara tugi
  *	- knownCAList toodud globaalseks konfiguratsiooniparameetriks
  *	- puhastatud kood mittevajalikest "debug" fragmentidest
  *
- *
  */
-
 
 /* ------------------------------------ */
 /* --- Muutujad ja andmestruktuurid --- */
@@ -75,67 +83,66 @@ var SignResponse = {
 }
 
 //1..99 on pluginatest tulevad vead
-//ver 0.12 - veakoodi 100 detailsem kirjeldus
 var dictionary = {
     1: {
         est: 'Allkirjastamine katkestati',
         eng: 'Signing was cancelled',
         lit: 'Pasirašymas nutrauktas',
-        rus: 'Signing was cancelled'
+        rus: 'Signing was cancelled',
     },
     2: {
         est: 'Sertifikaate ei leitud',
         eng: 'Certificate not found',
         lit: 'Nerastas sertifikatas',
-        rus: 'Certificate not found'
+        rus: 'Certificate not found',
     },
     9: {
         est: 'Vale allkirjastamise PIN',
         eng: 'Incorrect PIN code',
         lit: 'Incorrect PIN code',
-        rus: 'Incorrect PIN code'
+        rus: 'Incorrect PIN code',
     },
     12: {
         est: 'ID-kaardi lugemine ebaõnnestus',
         eng: 'Unable to read ID-Card',
         lit: 'Nepavyko perskaityti ID-kortos',
-        rus: 'Unable to read ID-Card'
+        rus: 'Unable to read ID-Card',
     },
     14: {
         est: 'Tehniline viga',
         eng: 'Technical error',
         lit: 'Techninė klaida',
-        rus: 'Technical error'
+        rus: 'Technical error',
     },
     15: {
         est: 'Vajalik tarkvara on puudu',
         eng: 'Unable to find software',
         lit: 'Nerasta programinės įranga',
-        rus: 'Unable to find software'
+        rus: 'Unable to find software',
     },
     16: {
         est: 'Vigane sertifikaadi identifikaator',
         eng: 'Invalid certificate identifier',
         lit: 'Neteisingas sertifikato identifikatorius',
-        rus: 'Invalid certificate identifier'
+        rus: 'Invalid certificate identifier',
     },
     17: {
         est: 'Vigane räsi',
         eng: 'Invalid hash',
         lit: 'Neteisinga santrauka',
-        rus: 'Invalid hash'
+        rus: 'Invalid hash',
     },
     19: {
         est: 'Veebis allkirjastamise käivitamine on võimalik vaid https aadressilt',
         eng: 'Web signing is allowed only from https:// URL',
         lit: 'Web signing is allowed only from https:// URL',
-        rus: 'Web signing is allowed only from https:// URL'
+        rus: 'Web signing is allowed only from https:// URL',
     },
     100: {
         est: 'Teie arvutist puudub allkirjastamistarkvara või ei ole Teie operatsioonisüsteemi ja brauseri korral veebis allkirjastamine toetatud. Allkirjastamistarkvara saate aadressilt https://installer.id.ee',
         eng: 'Web signing module is missing from your computer or web signing is not supported on your operating system and browser platform. Signing software is available from https://installer.id.ee',
         lit: 'Web signing module is missing from your computer or web signing is not supported on your operating system and browser platform. Signing software is available from https://installer.id.ee',
-        rus: 'Web signing module is missing from your computer or web signing is not supported on your operating system and browser platform. Signing software is available from https://installer.id.ee'
+        rus: 'Web signing module is missing from your computer or web signing is not supported on your operating system and browser platform. Signing software is available from https://installer.id.ee',
     }
 }
 
@@ -179,9 +186,7 @@ function isActiveXOK(plugin) {
     return true;
 }
 
-
 //2011.08, Ahto, teen nii, et see tagastab nüüd true/false
-
 function checkIfPluginIsLoaded(pluginName, lang) {
     var plugin = document.getElementById('IdCardSigning');
 
@@ -265,23 +270,20 @@ function loadSigningPlugin(lang, pluginToLoad) {
         if (pluginHTML[pluginToLoad] != undefined) // Määratud nimega plugin on olemas
         {
             document.getElementById('pluginLocation').innerHTML = pluginHTML[pluginToLoad];
-
             if (!checkIfPluginIsLoaded(pluginToLoad, lang)) {
                 throw new IdCardException(100, dictionary[100][lang]);
             }
-
             loadedPlugin = pluginToLoad;
-        } else // Plugina nimi on tundmatu
-        {
-            // Tagastame vea juhtimaks teegi kasutaja tähelepanu valele nimele.
+        }
+        else {
+            // Tagastame vea, juhtimaks teegi kasutaja tähelepanu valele nimele.
             throw new IdCardException(100, dictionary[100][lang]);
         }
         return;
-    } else {
-
+    }
+    else {
         // Esmalt püüame alati laadida uue ID-kaardi baastarkvara plugina (mime tüüp application/x-digidoc)
         // Allkärgnev kontroll on Safari jaoks, et kui plugin puudub ei tuleks kasutajale koledat teadet
-        //
         //
         // 2011.05, Ahto kommentaar if lause kohta:
         // Mac+Safari juhul käivitub isPluginSupported, mis vaatab, kas plugin on arvutis olemas või mitte.
@@ -296,16 +298,10 @@ function loadSigningPlugin(lang, pluginToLoad) {
                 loadedPlugin = "digidocPlugin";
                 return;
             }
-            //else: uue plugina laadimine ebaõnnestus, proovime laadida midagi altpoolt
         }
-        /*
-		else
-		{
-			alert("x-digidoc plugin is NOT supported");
-		}
-		*/
 
-        // Kui siia jõuame, siis uue tarkvara pluginat ei ole laetud ja otsustame brauseri põhiselt milline vanadest pluginatest laadida
+        // Kui siia jõuame, siis uue tarkvara pluginat ei ole laaditud ja
+        // otsustame brauseri järgi, milline vanadest pluginatest laadida
 
         if (navigator.userAgent.indexOf('Win') != -1) //
         {
@@ -318,8 +314,8 @@ function loadSigningPlugin(lang, pluginToLoad) {
                     loadedPlugin = "activeX"; //not specified, either activeX_new or activeX_old (will be clear during getCertificates())
                     return;
                 }
-                //else: activeX laadimine ebaõnnestus, proovime laadida midagi altpoolt
-            } else if (navigator.userAgent.indexOf("Firefox") != -1) {
+            }
+            else if (navigator.userAgent.indexOf("Firefox") != -1) {
                 // Tuvastasime, et tegu on Windowsi OS-i ja FF-iga
                 navigator.plugins.refresh();
                 if (navigator.mimeTypes['application/x-idcard-plugin']) {
@@ -327,12 +323,10 @@ function loadSigningPlugin(lang, pluginToLoad) {
                 } else if (navigator.mimeTypes['application/idcard-plugin']) {
                     document.getElementById('pluginLocation').innerHTML = '<embed id="IdCardSigning" type="application/idcard-plugin" width="1" height="1" hidden="true" />';
                 }
-
                 if (checkIfPluginIsLoaded("winMozPlugin", lang)) {
                     loadedPlugin = "winMozPlugin";
                     return;
                 }
-                //else: winMozPlugin laadimine ebaõnnestus, proovime laadida midagi altpoolt
             }
         } else if (navigator.userAgent.indexOf('Mac') != -1) {
             if ((navigator.userAgent.indexOf('Safari') == -1) || isPluginSupported("application/x-idcard-plugin")) {
@@ -347,34 +341,7 @@ function loadSigningPlugin(lang, pluginToLoad) {
             }
         }
 
-        /*
-		// ver 0.12 java appleti toe kadumine
-		//
-		// Java appleti laeme nüüd, kui muud valikud on ammendunud ehk seni pole ühtki muud pluginat laetud
-		// ning tegemist EI ole Mac OS X 10.5 ega Mac OS X 10.6'ga ega Mac OS X 10.7 (kõigil on uus plugin (digidocPlugin)
-		// ametlikult toetatud)
-		if (
-				(loadedPlugin===undefined || loadedPlugin=="") &&
-				!(
-					navigator.userAgent.indexOf("Mac OS X 10.5") != -1 || navigator.userAgent.indexOf("Mac OS X 10_5") != -1 ||
-					navigator.userAgent.indexOf("Mac OS X 10.6") != -1 || navigator.userAgent.indexOf("Mac OS X 10_6") != -1 ||
-					navigator.userAgent.indexOf("Mac OS X 10.7") != -1 || navigator.userAgent.indexOf("Mac OS X 10_7") != -1
-				)
-			)
-		{
-			document.getElementById('pluginLocation').innerHTML = pluginHTML['javaApplet'];
-
-			if (checkIfPluginIsLoaded("javaApplet", lang))
-			{
-				loadedPlugin = "javaApplet";
-				return;
-			}
-			//else: javaApplet laadimine ebaõnnestus, rohkem variante pole, anname all exceptioni
-
-		}
-		*/
-
-        //ühtki pluginat ei suudetud/ei otsustatud laadida, anname vea
+        //ühtki pluginat ei suudetud laadida, anname vea
         if (loadedPlugin === undefined || loadedPlugin == "") {
             throw new IdCardException(100, dictionary[100][lang]);
         }
@@ -405,9 +372,7 @@ function digidocPluginHandler(lang) {
 
         try {
             TempCert = plugin.getCertificate();
-        } catch (ex) {
-
-        }
+        } catch (ex) {}
 
         //2011.08.12, Ahto, saadame vea ülesse
         if (plugin.errorCode != "0") {
@@ -459,7 +424,6 @@ function digidocPluginHandler(lang) {
             throw new IdCardException(parseInt(plugin.errorCode), tmpErrorMessage);
         }
 
-
         if (response == null || response == undefined || response == "") {
             response = '({' + 'signature: "",' + 'returnCode: 14' + '})';
         } else {
@@ -483,7 +447,6 @@ function ActiveXAPIPluginHandler(lang) {
     var plugin = document.getElementById('IdCardSigning');
 
     this.getCertificate = function () {
-
         var signcert = plugin.getSigningCertificate();
 
         if (signcert != null && signcert != undefined && signcert != '') {
@@ -509,12 +472,11 @@ function ActiveXAPIPluginHandler(lang) {
         var response = plugin.getSignedHash(hash, id);
 
         if (response == null || response == undefined || response == "") {
-            response = '({' + 'signature: "",' + 'returnCode: 14' + '})';
-        } else {
-            response = '({' + 'signature: "' + response + '",' + 'returnCode:0' + '})'
+            response = {'signature': '', 'returnCode': 14};
         }
-
-        response = eval('' + response);
+        else {
+            response = {'signature': eval('' + response), 'returnCode': 0};
+        }
 
         if (response.returnCode != 0) {
             throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
@@ -538,23 +500,9 @@ function oldGenericAPIPluginHandler(lang) {
     var keyUsageRegex = new RegExp("(^| |,)" + "Non-Repudiation" + "($|,)");
 
     this.getCertificate = function () {
-
-
-        /*
-		// ver 0.12 - appleti toe kadumine
-		//
-		//2011.09.06 - kui applet pole lõpuni käima läinud, siis näitame sertide laadimisel viga
-		//NB! plugina laadimisel juba kontrollisime, kas applet üldse laetud on. Eeldame siin, et on üldse laetud
-		if(loadedPlugin=="javaApplet" && !plugin.isActive())
-		{
-			throw new IdCardException(1500, dictionary[1500][lang]);
-        }
-		*/
-
         var response = eval('' + plugin.getCertificates());
 
         if (response.returnCode != 0) {
-
             throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
         }
 
@@ -563,30 +511,10 @@ function oldGenericAPIPluginHandler(lang) {
         if (response.certificates.length == 0) {
             throw new IdCardException(2, dictionary[2][lang]);
         } else {
-            //2011.09.06, Ahto (RIK ettepanek mitte näidata seda teadet)
-            /*
-			if (response.certificates.length>0) {
-				//TODO: siin arvestada valitud keelega kah!
-				alert ("Leidsin mitu allkirjastamiseks sobilikku sertifikaati ja kasutan neist esimest");
-			}
-			*/
-            return response.certificates[0];
         }
     }
 
     this.sign = function (id, hash) {
-
-        /*
-		// ver 0.12 - appleti toe kadumine
-		//
-		//2011.09.06 - kui applet pole lõpuni käima läinud, siis näitame  viga
-		//NB! plugina laadimisel juba kontrollisime, kas applet üldse laetud on. Eeldame siin, et on üldse laetud
-		if(loadedPlugin=="javaApplet" && !plugin.isActive())
-		{
-			throw new IdCardException(1500, dictionary[1500][lang]);
-        }
-		*/
-
         var response = eval('' + plugin.sign(id, hash));
 
         if (response.returnCode != 0) {
@@ -607,7 +535,8 @@ function oldGenericAPIPluginHandler(lang) {
                 if (keyUsageRegex.exec(cert.keyUsage)) { // Ajaline võrdlus on välja täetud && cert.validFrom <= now && cert.validTo >= now &&*/
                     filteredCertificates[filteredCertificates.length] = cert;
                 }
-            } else { // Filtreerime leitud sertifikaate CA-de põhiselt
+            }
+            else { // Filtreerime leitud sertifikaate CA-de põhiselt
                 for (var j in knownCAList) {
                     if (cert.issuerCN == knownCAList[j] && keyUsageRegex.exec(cert.keyUsage)) { // Ajaline võrdlus on välja täetud && cert.validFrom <= now && cert.validTo >= now &&*/
                         filteredCertificates[filteredCertificates.length] = cert;
@@ -649,33 +578,24 @@ function IdCardPluginHandler(lang) {
     }
 
     this.getCertificate = function () {
-
         pluginHandler = this.choosePluginHandler();
         return pluginHandler.getCertificate();
     }
 
     this.sign = function (id, hash) {
-
         pluginHandler = this.choosePluginHandler();
         return pluginHandler.sign(id, hash);
     }
 
     this.getVersion = function () {
-
         pluginHandler = this.choosePluginHandler();
         return pluginHandler.getVersion();
     }
-
 }
 
-
-
-/*
-Abifunktsioon tuvastamaks, kas antud mime-tüübiga plugin eksisteerib.
-Enne mooduli lehele laadimist on vajalik antud kontroll läbi viia, vastasel korral kuvatakse kasutajale kole hoiatus.
-*/
-
-
+/**
+ * A helper function to detect if plugin with the given mime-type exists.
+ */
 function isPluginSupported(pluginName) {
     if (navigator.mimeTypes && navigator.mimeTypes.length) {
         if (navigator.mimeTypes[pluginName]) {
@@ -686,8 +606,6 @@ function isPluginSupported(pluginName) {
     } else {
         return false;
     }
-
-
 }
 
 /* ----------------------- */
@@ -721,14 +639,11 @@ function rtrim(str, chars) {
 function certPEMToHex(certPEM) {
     certPEM = certPEM.replace(/-----BEGIN CERTIFICATE-----\n/gi, "");
     certPEM = certPEM.replace(/\n-----END CERTIFICATE-----\n/gi, "");
-
     return bin2hex(base64decode(certPEM));
 }
 
 //teeb hex serdist JSON objekti
-
 function certHexToJSON(hexCert, selectedCertNumber) {
-
     var idCode, firstName, lastName, issuerCN, subjectCN, keyUsage, validFrom, validTo;
     var countCN = 0;
     var countUTCTime = 0;
@@ -783,23 +698,20 @@ function certHexToJSON(hexCert, selectedCertNumber) {
                         validFrom = dateStr; //new Date(year, month, day, hour, minute, second);
                         //validFrom.setFullYear(validFrom.getFullYear() + 100);
                         countUTCTime++;
-                    } else if (countUTCTime == 1) {
+                    }
+                    else if (countUTCTime == 1) {
                         validTo = dateStr; //new Date(year, month, day, hour, minute, second);
                         //validTo.setFullYear(validTo.getFullYear() + 100);
                         countUTCTime++;
                     }
-
-                    break;
-                default:
                     break;
             }
 
         } catch (ex) {}
     }
 
-    // See koht on väidetavalt seetõttu, et ASN.1 struktuuri parsimisel ei õnnestunud ID-kaardi sertifikaatide korral CN-i korralikult välja lugeda
-    //2011.05, ahto, parandus seoses "ESTEID-SK 2011" lisandumisega
-    //if ( (issuerCN == "ESTEID-SK")  || (issuerCN == "ESTEID-SK 2007") || (issuerCN == "ESTEID-SK 2011"))
+    // See koht on väidetavalt seetõttu, et ASN.1 struktuuri parsimisel ei
+    // õnnestunud ID-kaardi sertifikaatide korral CN-i korralikult välja lugeda
     if (issuerCN.indexOf("ESTEID-SK") != -1) {
         subjectCN = lastName + "," + firstName + "," + idCode;
     }
@@ -922,13 +834,14 @@ function readASN1(data) {
             if (parseInt("0x" + data.substr(point, 2)) & 128) {
                 var lenLength = parseInt("0x" + data.substr(point, 2)) & 127;
                 if (lenLength > 2) {
-                    var error_message = "LENGTH field is too long.(at " + point + ")\nThis program accepts up to 2 octets of Length field.";
+                    var error_message = "LENGTH field is too long. (at " + point + ")\nThis program accepts up to 2 octets of Length field.";
                     alert(error_message);
                     return error_message;
                 }
                 len = parseInt("0x" + data.substr(point + 2, lenLength * 2));
                 point += lenLength * 2 + 2; // Special thanks to Mr.(or Ms.) T (Mon, 25 Nov 2002 23:49:29)
-            } else if (lenLength != 0) { // Special thanks to Mr.(or Ms.) T (Mon, 25 Nov 2002 23:49:29)
+            }
+            else if (lenLength != 0) { // Special thanks to Mr.(or Ms.) T (Mon, 25 Nov 2002 23:49:29)
                 len = parseInt("0x" + data.substr(point, 2));
                 point += 2;
             }
@@ -939,7 +852,8 @@ function readASN1(data) {
                 alert(error_message);
                 return error_message;
             }
-        } else {
+        }
+        else {
             point += 2;
         }
 
@@ -953,7 +867,8 @@ function readASN1(data) {
 
         if (!isSeq) {
             object.push([tagName, getValue(isContext ? 4 : tag, val)]);
-        } else {
+        }
+        else {
             object.push(readASN1(val))
         }
     }
@@ -966,21 +881,26 @@ function getValue(tag, data) {
 
     if (tag == 1) {
         ret = data ? 'TRUE' : 'FALSE';
-    } else if (tag == 2) {
+    }
+    else if (tag == 2) {
         ret = (data.length < 3) ? parseInt("0x" + data) : data + ' : Too long Integer. Printing in HEX.';
-    } else if (tag == 3) {
+    }
+    else if (tag == 3) {
         var unUse = parseInt("0x" + data.substr(0, 2));
         var bits = data.substr(2);
 
         if (bits.length > Bitstring_hex_limit) {
             ret = "0x" + bits;
-        } else {
+        }
+        else {
             ret = parseInt("0x" + bits).toString(2);
         }
         ret += " : " + unUse + " unused bit(s)";
-    } else if (tag == 5) {
+    }
+    else if (tag == 5) {
         ret = "";
-    } else if (tag == 6) {
+    }
+    else if (tag == 6) {
         var res = new Array();
         var d0 = parseInt("0x" + data.substr(0, 2));
         res[0] = Math.floor(d0 / 40);
@@ -995,7 +915,8 @@ function getValue(tag, data) {
 
             if (token & 128) {
                 powNum++;
-            } else {
+            }
+            else {
                 var sum = 0;
                 for (var j = 0; j < stack.length; j++) {
                     sum += stack[j] * Math.pow(128, powNum--);
@@ -1006,7 +927,8 @@ function getValue(tag, data) {
             }
         }
         ret = res.join(".");
-    } else if (NAME[tag] != null && NAME[tag] != undefined && NAME[tag].match(/(BMPString)$/)) {
+    }
+    else if (NAME[tag] != null && NAME[tag] != undefined && NAME[tag].match(/(BMPString)$/)) {
         var k = 0;
         ret += "'";
         while (k < data.length) {
@@ -1015,7 +937,9 @@ function getValue(tag, data) {
         }
         ret += "'";
     }
-    //2009.04.11, Ahto, lisasin siia NAME[tag] != null && NAME[tag] != undefined && (siin oli kĆ¤sitlemata juhtum NAME[30] else if (NAME[tag] != null && NAME[tag] != undefined && NAME[tag].match(/(Time|String)$/)) {
+    //2009.04.11, Ahto, lisasin siia NAME[tag] != null && NAME[tag] != undefined
+    // (siin oli käsitlemata juhtum NAME[30]
+    else if (NAME[tag] != null && NAME[tag] != undefined && NAME[tag].match(/(Time|String)$/)) {
         var k = 0;
         ret += "'";
         while (k < data.length) {
@@ -1023,7 +947,8 @@ function getValue(tag, data) {
             k += 2;
         }
         ret += "'";
-    } else {
+    }
+    else {
         ret = data;
     }
     return ret;

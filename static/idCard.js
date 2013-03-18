@@ -146,6 +146,21 @@ var dictionary = {
     }
 }
 
+function translate(lang, code, default_message = undefined) {
+    var message;
+    try {
+        message = dictionary[code][lang];
+    }
+    catch (ex) {
+        if (default_message === undefined) {
+            message = 'Error with code ' + code + ' occurred.';
+        }
+        else {
+            message = default_message;
+        }
+    }
+    return message;
+}
 
 var loadedPlugin = '';
 
@@ -153,108 +168,58 @@ var loadedPlugin = '';
 
 function IdCardException(returnCode, message) {
     this.returnCode = returnCode;
-
     this.message = message;
-
-    this.isError = function () {
-        return this.returnCode != 1;
-    }
-
-    this.isCancelled = function () {
-        return this.returnCode == 1;
-    }
+    this.isError = this.returnCode != 1;
+    this.isCancelled = this.returnCode == 1;
 }
 
-
 function isActiveXOK(plugin) {
-
-    if (plugin == null)
-        return false;
-
-    if (typeof (plugin) == "undefined")
-        return false;
-
-    if (plugin.readyState != 4)
-        return false;
-
-    if (plugin.object == null)
-        return false;
-
-    if (typeof (plugin.getSigningCertificate) == "undefined")
-        return false;
-
-    return true;
+    return !(plugin == null || typeof (plugin) == "undefined"
+      || plugin.readyState != 4 || plugin.object == null
+      || typeof (plugin.getSigningCertificate) == "undefined");
 }
 
 //2011.08, Ahto, teen nii, et see tagastab nüüd true/false
 function checkIfPluginIsLoaded(pluginName, lang) {
     var plugin = document.getElementById('IdCardSigning');
 
-    if (pluginName == "activeX") {
-        return isActiveXOK(plugin);
-    } else if (pluginName == "winMozPlugin" || pluginName == "macPlugin") {
-        try {
-            var ver = plugin.getVersion();
-
-            if (ver !== undefined) {
-                return true;
-            }
-        } catch (ex) {
-            //throw new IdCardException(15, dictionary[15][lang]);
-        }
-
-        return false;
-    } else if (pluginName == "digidocPlugin") {
-        try {
-            var ver = plugin.version; // Uue plugina tuvastus - uuel pluginal pole getVersion() meetodit
-            // IE-s ei tule siin exceptionit, lihtsalt ver == undefined
-
-            if (ver !== undefined) {
-                return true;
-            }
-        } catch (ex) {}
-
-        return false;
+    switch (pluginName) {
+        case 'activeX':
+            return isActiveXOK(plugin);
+            break;
+        case 'winMozPlugin':
+        case 'macPlugin':
+            try {
+                var ver = plugin.getVersion();
+                return ver !== undefined;
+            } catch (ex) {}
+            return false;
+            break;
+        case 'digidocPlugin':
+            try {
+                // Uue plugina tuvastus - uuel pluginal pole getVersion() meetodit
+                // IE-s ei tule siin exceptionit, lihtsalt ver == undefined
+                var ver = plugin.version;
+                return ver !== undefined;
+            } catch (ex) {}
+            return false;
+            break;
     }
-    /*
-	//ver 0.12 - appleti toe kadumine
-	else if (pluginName == "javaApplet")
-	{
-		try
-		{
-			plugin.isActive();	//Kui see midagi vastab (vahet pole, kas true või false), siis on applet
-								//laetud lehele, kui aga appletid on blokeeritud vms ehk applet ei ole käivitunud,
-								//siis tuleb exception "member not found"
-			return true;
-		}
-		catch (ex)
-		{
-			return false;
-		}
-	}
-	*/
-    else {
-        //Muud juhud ehk siis pluginName == "" vms
-        return false;
-    }
+    return false;
 }
-
 
 function getLoadedPlugin() {
     return loadedPlugin;
 }
 
 function loadSigningPlugin(lang, pluginToLoad) {
-
-    //ver 0.12 - java appleti toe kadumine:
-    //javaApplet:		'<applet id="IdCardSigning" CODE ="SignatureApplet.class" ARCHIVE ="SignApplet_sig.jar,iaikPkcs11Wrapper_sig.jar" WIDTH="0" HEIGHT="0" NAME="SignatureApplet" MAYSCRIPT><param NAME="CODE" VALUE="SignatureApplet.class"><param NAME="ARCHIVE" VALUE="SignApplet_sig.jar,iaikPkcs11Wrapper_sig.jar"><param NAME="NAME" VALUE="SignatureApplet"><param NAME="DEBUG_LEVEL" VALUE="4"><param NAME="LANG" VALUE="EST"><param NAME="type" VALUE="application/x-java-applet;version=1.1.2"></applet>',
     var pluginHTML = {
+        digidocPlugin: '<object id="IdCardSigning" type="application/x-digidoc" style="width: 1px; height: 1px; visibility: hidden;"></object>',
         activeX: '<OBJECT id="IdCardSigning" codebase="EIDCard.cab" classid="clsid:FC5B7BD2-584A-4153-92D7-4C5840E4BC28"></OBJECT>',
-        winMozPlugin: '<embed id="IdCardSigning" type="application/idcard-plugin" width="1" height="1" hidden="true" />',
-        macPlugin: '<embed id="IdCardSigning" type="application/x-idcard-plugin" width="1" height="1" hidden="true" />',
-        digidocPlugin: '<object id="IdCardSigning" type="application/x-digidoc" style="width: 1px; height: 1px; visibility: hidden;"></object>'
-    }
-    var plugin;
+        winMozPlugin: '<embed id="IdCardSigning" type="application/idcard-plugin" style="width: 1px; height: 1px; visibility: hidden;" />',
+        macPlugin: '<embed id="IdCardSigning" type="application/x-idcard-plugin" style="width: 1px; height: 1px; visibility: hidden;" />',
+    };
+    var pluginLocation = document.getElementById('pluginLocation');
 
     if (!lang || lang == undefined) {
         lang = 'est';
@@ -269,7 +234,7 @@ function loadSigningPlugin(lang, pluginToLoad) {
     if (pluginToLoad != undefined) {
         if (pluginHTML[pluginToLoad] != undefined) // Määratud nimega plugin on olemas
         {
-            document.getElementById('pluginLocation').innerHTML = pluginHTML[pluginToLoad];
+            pluginLocation.innerHTML = pluginHTML[pluginToLoad];
             if (!checkIfPluginIsLoaded(pluginToLoad, lang)) {
                 throw new IdCardException(100, dictionary[100][lang]);
             }
@@ -291,9 +256,9 @@ function loadSigningPlugin(lang, pluginToLoad) {
         // puhul, kui püüda uut pluginat ilma selle olemasolu kontrollita laadida, näidatakse kasutajale
         // kole viga, kui pluginat pole.
         if (
-        (!(navigator.userAgent.indexOf('Mac') != -1 && navigator.userAgent.indexOf('Safari') != -1)) ||
+            (!(navigator.userAgent.indexOf('Mac') != -1 && navigator.userAgent.indexOf('Safari') != -1)) ||
             isPluginSupported("application/x-digidoc")) {
-            document.getElementById('pluginLocation').innerHTML = '<object id="IdCardSigning" type="application/x-digidoc" style="width: 1px; height: 1px; visibility: hidden;"></object>';
+            pluginLocation.innerHTML = pluginHTML['digidocPlugin'];
             if (checkIfPluginIsLoaded("digidocPlugin", lang)) {
                 loadedPlugin = "digidocPlugin";
                 return;
@@ -306,12 +271,10 @@ function loadSigningPlugin(lang, pluginToLoad) {
         if (navigator.userAgent.indexOf('Win') != -1) //
         {
             if (navigator.appVersion.indexOf("MSIE") != -1) {
-                // Tuvastasime, et tegu on Windowsi OS-i ja IE-ga, laeme ActiveX-i.
-
-                document.getElementById('pluginLocation').innerHTML = pluginHTML['activeX'];
-
+                // Tuvastasime, et tegu on Windowsi OS-i ja IE-ga, laadime ActiveX-i.
+                pluginLocation.innerHTML = pluginHTML['activeX'];
                 if (checkIfPluginIsLoaded("activeX", lang)) {
-                    loadedPlugin = "activeX"; //not specified, either activeX_new or activeX_old (will be clear during getCertificates())
+                    loadedPlugin = "activeX";
                     return;
                 }
             }
@@ -319,25 +282,23 @@ function loadSigningPlugin(lang, pluginToLoad) {
                 // Tuvastasime, et tegu on Windowsi OS-i ja FF-iga
                 navigator.plugins.refresh();
                 if (navigator.mimeTypes['application/x-idcard-plugin']) {
-                    document.getElementById('pluginLocation').innerHTML = '<embed id="IdCardSigning" type="application/x-idcard-plugin" width="1" height="1" hidden="true" />';
-                } else if (navigator.mimeTypes['application/idcard-plugin']) {
-                    document.getElementById('pluginLocation').innerHTML = '<embed id="IdCardSigning" type="application/idcard-plugin" width="1" height="1" hidden="true" />';
+                    pluginLocation = pluginHTML['macPlugin'];
+                }
+                else if (navigator.mimeTypes['application/idcard-plugin']) {
+                    pluginLocation = pluginHTML['winMozPlugin'];
                 }
                 if (checkIfPluginIsLoaded("winMozPlugin", lang)) {
                     loadedPlugin = "winMozPlugin";
                     return;
                 }
             }
-        } else if (navigator.userAgent.indexOf('Mac') != -1) {
-            if ((navigator.userAgent.indexOf('Safari') == -1) || isPluginSupported("application/x-idcard-plugin")) {
-
-                document.getElementById('pluginLocation').innerHTML = pluginHTML['macPlugin'];
-
-                if (checkIfPluginIsLoaded("macPlugin", lang)) {
-                    loadedPlugin = "macPlugin";
-                    return;
-                }
-                //else: macPlugin laadimine ebaõnnestus, proovime laadida midagi altpoolt
+        }
+        else if (navigator.userAgent.indexOf('Mac') != -1
+            && (navigator.userAgent.indexOf('Safari') == -1) || isPluginSupported("application/x-idcard-plugin")) {
+            pluginLocation = pluginHTML['macPlugin'];
+            if (checkIfPluginIsLoaded("macPlugin", lang)) {
+                loadedPlugin = "macPlugin";
+                return;
             }
         }
 
@@ -376,32 +337,24 @@ function digidocPluginHandler(lang) {
 
         //2011.08.12, Ahto, saadame vea ülesse
         if (plugin.errorCode != "0") {
-
-            try {
-                tmpErrorMessage = dictionary[plugin.errorCode][lang]; //exception tuleb, kui array elementi ei eksisteeri
-            } catch (ex) {
-                tmpErrorMessage = plugin.errorMessage;
-            }
-
+            tmpErrorMessage = translate(lang, plugin.errorCode, plugin.errorMessage);
             throw new IdCardException(parseInt(plugin.errorCode), tmpErrorMessage);
         }
 
-        // IE plugin ei tagastanud cert väljal sertifikaati HEX kujul, mistõttu on siia tehtud hack, et sertifikaadi hex kuju võetakse certificateAsHex väljalt
-        if ((TempCert.cert == undefined)) {
-            response = '({' +
-                '    id: "' + TempCert.id + '",' +
-                '    cert: "' + TempCert.certificateAsHex + '",' +
-                '    CN: "' + TempCert.CN + '",' +
-                '    issuerCN: "' + TempCert.issuerCN + '",' +
-                '    keyUsage: "Non-Repudiation"' +
-            //				   '    validFrom: ' + TempCert.validFrom + ',' +
-            //				   '    validTo: ' + TempCert.validTo +
-            '})';
-            response = eval('' + response);
-            return response;
-        } else {
-            return TempCert;
+        // IE plugin ei tagastanud cert väljal sertifikaati HEX kujul, mistõttu
+        // on siia tehtud hack, et sertifikaadi hex kuju võetakse certificateAsHex väljalt
+        if (TempCert.cert == undefined) {
+            return {
+                'id': TempCert.id,
+                'cert': TempCert.certificateAsHex,
+                'CN': TempCert.CN,
+                'issuerCN': TempCert.issuerCN,
+                'keyUsage': 'Non-Repudiation',
+            //	  'validFrom': TempCert.validFrom,
+            //		'validTo': TempCert.validTo,
+            };
         }
+        return TempCert;
     }
 
     this.sign = function (id, hash) {
@@ -414,28 +367,15 @@ function digidocPluginHandler(lang) {
 
         //2011.08.12, Ahto, saadame vea ülesse
         if (plugin.errorCode != "0") {
-
-            try {
-                tmpErrorMessage = dictionary[plugin.errorCode][lang]; //exception tuleb, kui array elementi ei eksisteeri
-            } catch (ex) {
-                tmpErrorMessage = plugin.errorMessage;
-            }
-
+            tmpErrorMessage = translate(lang, plugin.errorCode, plugin.errorMessage);
             throw new IdCardException(parseInt(plugin.errorCode), tmpErrorMessage);
         }
 
         if (response == null || response == undefined || response == "") {
-            response = '({' + 'signature: "",' + 'returnCode: 14' + '})';
-        } else {
-            response = '({' + 'signature: "' + response + '",' + 'returnCode:0' + '})'
+            tmpErrorMessage = translate(lang, 14, plugin.errorMessage);
+            throw new IdCardException(14, tmpErrorMessage);
         }
-
-        response = eval('' + response);
-
-        if (response.returnCode != 0) {
-            throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
-        }
-        return response.signature;
+        return eval('' + response);
     }
 
     this.getVersion = function () {
@@ -449,49 +389,27 @@ function ActiveXAPIPluginHandler(lang) {
     this.getCertificate = function () {
         var signcert = plugin.getSigningCertificate();
 
-        if (signcert != null && signcert != undefined && signcert != '') {
-            var response = eval('' + certHexToJSON(signcert, plugin.selectedCertNumber));
-        } else {
-            throw new IdCardException(2, dictionary[2][lang]);
+        if (signcert == null || signcert == undefined || signcert == '') {
+            throw new IdCardException(2, translate(lang, 2));
         }
 
-        /*
-		if (response.returnCode != 0) {
-
-            throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
-        }
-
-        if (response.certificates.length == 0) {
-            throw new IdCardException(2, dictionary[2][lang]);
-        }
-*/
-        return response;
+        return certHexToJSON(signcert, plugin.selectedCertNumber);
     }
 
     this.sign = function (id, hash) {
         var response = plugin.getSignedHash(hash, id);
 
         if (response == null || response == undefined || response == "") {
-            response = {'signature': '', 'returnCode': 14};
+            throw new IdCardException(14, translate(lang, 14));
         }
-        else {
-            response = {'signature': eval('' + response), 'returnCode': 0};
-        }
-
-        if (response.returnCode != 0) {
-            throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
-        }
-        return response.signature;
+        return eval('' + response);
     }
 
     //tähtis on hetkel vaid see, et see meetod oleks defineeritud, tagastatav väärtus pole oluline
     this.getVersion = function () {
         try {
-            var ver = plugin.getVersion();
-            return ver;
-        } catch (ex) {
-            return undefined;
-        }
+            return plugin.getVersion();
+        } catch (ex) {}
     }
 }
 
@@ -503,22 +421,22 @@ function oldGenericAPIPluginHandler(lang) {
         var response = eval('' + plugin.getCertificates());
 
         if (response.returnCode != 0) {
-            throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
+            throw new IdCardException(response.returnCode, translate(lang, response.returnCode));
         }
 
         response.certificates = this.filter(response.certificates);
 
         if (response.certificates.length == 0) {
-            throw new IdCardException(2, dictionary[2][lang]);
-        } else {
+            throw new IdCardException(2, translate(lang, 2));
         }
+        return response.certificates[0];
     }
 
     this.sign = function (id, hash) {
         var response = eval('' + plugin.sign(id, hash));
 
         if (response.returnCode != 0) {
-            throw new IdCardException(response.returnCode, dictionary[response.returnCode][lang]);
+            throw new IdCardException(response.returnCode, translate(lang, response.returnCode));
         }
         return response.signature;
     }
@@ -532,13 +450,15 @@ function oldGenericAPIPluginHandler(lang) {
 
             if (knownCAList[0] == "*") // Kõik CA-d on sobilikud
             {
-                if (keyUsageRegex.exec(cert.keyUsage)) { // Ajaline võrdlus on välja täetud && cert.validFrom <= now && cert.validTo >= now &&*/
+                // Ajaline võrdlus on välja jäetud cert.validFrom <= now && cert.validTo >= now
+                if (keyUsageRegex.exec(cert.keyUsage)) {
                     filteredCertificates[filteredCertificates.length] = cert;
                 }
             }
             else { // Filtreerime leitud sertifikaate CA-de põhiselt
                 for (var j in knownCAList) {
-                    if (cert.issuerCN == knownCAList[j] && keyUsageRegex.exec(cert.keyUsage)) { // Ajaline võrdlus on välja täetud && cert.validFrom <= now && cert.validTo >= now &&*/
+                    // Ajaline võrdlus on välja jäetud cert.validFrom <= now && cert.validTo >= now
+                    if (cert.issuerCN == knownCAList[j] && keyUsageRegex.exec(cert.keyUsage)) {
                         filteredCertificates[filteredCertificates.length] = cert;
                     }
                 }
@@ -550,18 +470,14 @@ function oldGenericAPIPluginHandler(lang) {
     //tähtis on hetkel vaid see, et see meetod oleks defineeritud, tagastatav väärtus pole oluline
     this.getVersion = function () {
         try {
-            var ver = plugin.getVersion();
-            return ver;
-        } catch (ex) {
-            return undefined;
-        }
+            return plugin.getVersion();
+        } catch (ex) {}
     }
 }
 
 function IdCardPluginHandler(lang) {
     var plugin = document.getElementById('IdCardSigning');
     var pluginHandler = null;
-    var response = null;
 
     if (!lang || lang == undefined) {
         lang = 'est';
@@ -570,9 +486,11 @@ function IdCardPluginHandler(lang) {
     this.choosePluginHandler = function () {
         if (loadedPlugin == "digidocPlugin") {
             return new digidocPluginHandler(lang);
-        } else if (loadedPlugin == "activeX") {
+        }
+        else if (loadedPlugin == "activeX") {
             return new ActiveXAPIPluginHandler(lang);
-        } else {
+        }
+        else {
             return new oldGenericAPIPluginHandler(lang);
         }
     }
@@ -597,15 +515,11 @@ function IdCardPluginHandler(lang) {
  * A helper function to detect if plugin with the given mime-type exists.
  */
 function isPluginSupported(pluginName) {
-    if (navigator.mimeTypes && navigator.mimeTypes.length) {
-        if (navigator.mimeTypes[pluginName]) {
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        return false;
+    if (navigator.mimeTypes && navigator.mimeTypes.length
+        && navigator.mimeTypes[pluginName]) {
+        return true;
     }
+    return false;
 }
 
 /* ----------------------- */
@@ -716,17 +630,15 @@ function certHexToJSON(hexCert, selectedCertNumber) {
         subjectCN = lastName + "," + firstName + "," + idCode;
     }
 
-    returnValue = '({' +
-        '    id: "' + selectedCertNumber + '",' +
-        '    cert: "' + hexCert + '",' +
-        '    CN: "' + subjectCN + '",' +
-        '    issuerCN: "' + issuerCN + '",' +
-        '    keyUsage: "Non-Repudiation",' +
-        '    validFrom: ' + validFrom + ',' +
-        '    validTo: ' + validTo +
-        '})';
-
-    return returnValue;
+    return {
+        id: selectedCertNumber,
+        cert:  hexCert,
+        CN: subjectCN,
+        issuerCN: issuerCN,
+        keyUsage: 'Non-Repudiation',
+        validFrom: validFrom,
+        validTo: validTo
+    };
 }
 
 /**
@@ -961,10 +873,7 @@ function bin2hex(bin) {
 
     while (i < len) {
         var h1 = bin.charCodeAt(i++).toString(16);
-        if (h1.length < 2) {
-            hex += "0";
-        }
-        hex += h1;
+        hex += (h1.length < 2) ? '0' + h1 : h1;
     }
 
     return hex;

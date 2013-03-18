@@ -563,15 +563,7 @@ function certHexToJSON(hexCert, selectedCertNumber) {
     var countUTCTime = 0;
     var year, yearStr, month, day, hour, minute, second, UTCTime, dateStr;
 
-    var In = {
-        value: hexCert
-    };
-    var Out = {};
-    var returnValue;
-
-    convert(In, Out, "decode_HEX");
-
-    asnTreeAsArray = Out.value.toString().split(",");
+    asnTreeAsArray = readASN1(hexCert).toString().split(",");
 
     for (i = 0; i < asnTreeAsArray.length; i++) {
         try {
@@ -673,52 +665,6 @@ for (var i in ID) {
 }
 
 var Bitstring_hex_limit = 4;
-
-var isEncode = new RegExp("[^0-9a-zA-Z\/=+]", "i");
-var isB64 = new RegExp("[^0-9a-fA-F]", "i");
-
-function convert(src, ans, mode) {
-    var srcValue = src.value.replace(/[\s\r\n]/g, '');
-
-    if (mode == 'auto') {
-        if (srcValue.match(isEncode)) {
-            mode = 'encode';
-        } else if (srcValue.match(isB64)) {
-            mode = 'decode_B64';
-        } else {
-            mode = 'decode_HEX';
-        }
-    }
-
-    if (mode == 'encode') {
-        ans.value = encode(srcValue);
-        return;
-    } else if (mode == 'decode_B64') {
-        if (srcValue.match(isEncode)) {
-            if (confirm("Illegal character for Decoding process.\nDo you wish to continue as Encoding process?")) {
-                ans.value = encode(srcValue);
-                return;
-            } else {
-                return;
-            }
-        }
-        ans.value = decode(bin2hex(base64decode(srcValue)));
-    } else if (mode == 'decode_HEX') {
-        ans.value = readASN1(srcValue);
-    }
-}
-
-function encode(src) {
-    var ans;
-    return ans;
-}
-
-function decode(src) {
-    if (src.length % 2 != 0) {
-        alert('Illegal length. Hex string\'s length must be even.');
-    }
-    return readASN1(src);
-}
 
 function readASN1(data) {
     var point = 0;

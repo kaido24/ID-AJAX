@@ -27,7 +27,7 @@ define('DD_SERVICE_NAME', 'Testimine');
  * for "DigiDoc Service veebiteenuse aadress:", it probably is
  * https://digidocservice.sk.ee
  */
-define('DDS_ENDPOINT', 'https://www.openxades.org:8443');
+define('DDS_ENDPOINT', 'http://demo.sk.ee/ocsp');
 
 /**
  * Server connection settings.
